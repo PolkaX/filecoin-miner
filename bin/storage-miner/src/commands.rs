@@ -2,7 +2,7 @@ use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
 pub struct Command {
-    #[structopt(subcommand)] // Note that we mark a field as a subcommand
+    #[structopt(subcommand)]
     pub cmd: SubCommand,
 }
 
@@ -11,11 +11,11 @@ pub struct Command {
 pub enum SubCommand {
     Run(RunCommand),
     Init(InitCommand),
-    #[structopt(about = "Print storage miner info")]
+    /// Print storage miner info
     Info,
-    #[structopt(about = "Store random data in a sector")]
+    /// Store random data in a sector
     PledgeSector,
-    Sectors {},
+    Sectors(SubSectorsCmd),
 }
 
 /// Start a storage miner process
@@ -67,13 +67,19 @@ pub struct InitCommand {
     pub symlink_imported_sectors: bool,
 }
 
+#[derive(StructOpt, Debug)]
+pub struct SubSectorsCmd {
+    #[structopt(subcommand)]
+    pub cmd: SectorsCmd,
+}
+
 /// Interact with sector store
 #[derive(StructOpt, Debug)]
-pub enum SectorsCommand {
+pub enum SectorsCmd {
     Status(SectorsStatusCmd),
-    #[structopt(about = "List sectors")]
+    /// List sectors
     List,
-    #[structopt(about = "List References to sectors")]
+    /// List References to sectors
     Refs,
     UpdateState(SectorsUpdateCmd),
 }
