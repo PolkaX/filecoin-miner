@@ -1,0 +1,13 @@
+**/target/
+**/*.rs.bk
+*.swp
+**/._*
+**/.criterion/
+.vscode
+.DS_Store
+.idea/
+nohup.out
+rls*.log
+*.orig
+*.rej
+Cargo.lock

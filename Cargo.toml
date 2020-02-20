@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "bin/seal-worker",
+    "bin/storage-miner",
+    "core/api",
+    "core/sectorbuilder",
+]

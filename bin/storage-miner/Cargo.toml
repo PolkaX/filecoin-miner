@@ -1,0 +1,11 @@
+[package]
+name = "storage-miner"
+version = "0.1.0"
+authors = ["PolkaX <https://github.com/PolkaX>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+api = { package = "rust-api", path = "../../core/api" }
+sector-builder = { package = "rust-sectorbuilder", path = "../../core/sectorbuilder" }
