@@ -11,3 +11,6 @@ structopt = "0.3"
 
 api = { package = "rust-api", path = "../../core/api" }
 sector-builder = { package = "rust-sectorbuilder", path = "../../core/sectorbuilder" }
+
+datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+ds-rocksdb = { package = "rust-ds-rocksdb", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }

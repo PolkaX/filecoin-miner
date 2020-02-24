@@ -1,0 +1,20 @@
+[package]
+name = "repo"
+version = "0.1.0"
+authors = ["Aten <jincxmain@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4"
+serde_json = "1.0"
+
+plum_libp2p = { git = "https://github.com/PolkaX/plum" }
+types = { git = "https://github.com/PolkaX/plum" }
+fs-lock = { package = "rust-fs-lock", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+ds-rocksdb = { package = "rust-ds-rocksdb", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+
+config = { path = "../config" }
+node-utils = { path = "../utils" }
