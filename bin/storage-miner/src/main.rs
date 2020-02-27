@@ -11,12 +11,7 @@ fn main() {
         SubCommand::Run(com) => {
             println!("{:?}", com);
 
-            let (signal, exit) = exit_future::signal();
-
-            node_service::run_service_until_exit(service::Mock {
-                exit,
-                signal: Some(signal),
-            });
+            node_service::run_service_until_exit(service::ServiceBuilder::new().build());
         }
         SubCommand::Init(init) => {
             println!("{:?}", init);

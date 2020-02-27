@@ -1,5 +1,7 @@
 mod error;
 
+use std::borrow::Cow;
+
 use async_std::task;
 
 use futures::pin_mut;
@@ -12,6 +14,22 @@ pub use error::Error;
 pub trait AbstractService:
     'static + Future<Output = Result<(), Error>> + Spawn + Send + Unpin
 {
+    /// Spawns a task in the background that runs the future passed as parameter.
+    fn spawn_task(
+        &self,
+        name: impl Into<Cow<'static, str>>,
+        task: impl Future<Output = ()> + Send + 'static,
+    );
+
+    /// Spawns a task in the background that runs the future passed as
+    /// parameter. The given task is considered essential, i.e. if it errors we
+    /// trigger a service exit.
+    fn spawn_essential_task(
+        &self,
+        name: impl Into<Cow<'static, str>>,
+        task: impl Future<Output = ()> + Send + 'static,
+    );
+
     /// Get a handle to a future that will resolve on exit.
     fn on_exit(&self) -> ::exit_future::Exit;
 }
