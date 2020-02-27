@@ -7,4 +7,5 @@ members = [
     "node/config",
     "node/repo",
     "node/utils",
+    "node/service",
 ]

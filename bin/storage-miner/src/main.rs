@@ -1,4 +1,5 @@
 mod commands;
+mod service;
 
 use structopt::StructOpt;
 
@@ -9,6 +10,16 @@ fn main() {
     match opt.cmd {
         SubCommand::Run(com) => {
             println!("{:?}", com);
+
+            let (signal, exit) = exit_future::signal();
+
+            node_service::run_service_until_exit(service::Mock {
+                exit,
+                signal: Some(signal),
+            });
+        }
+        SubCommand::Init(init) => {
+            println!("{:?}", init);
         }
         _ => println!("{:?}", opt.cmd),
     }
