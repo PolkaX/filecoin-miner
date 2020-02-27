@@ -12,3 +12,5 @@ futures = "0.3"
 exit-future = "0.2"
 thiserror = "1.0"
 ctrlc = "3.1"
+
+repo = { path = "../repo" }

@@ -14,7 +14,11 @@ use futures::{
 
 use async_std::task;
 
+use repo::{FsLockedRepo, Keystore};
+
 pub struct Service {
+    /// repo
+    repo: FsLockedRepo,
     /// A future that resolves when the service has exited, this is useful to
     /// make sure any internally spawned futures stop when the service does.
     exit: Exit,
@@ -35,16 +39,17 @@ pub struct Service {
 }
 
 pub struct ServiceBuilder {
-    // TODO
+    repo: FsLockedRepo,
 }
 
 impl ServiceBuilder {
-    pub fn new() -> Self {
-        ServiceBuilder {}
+    pub fn new(repo: FsLockedRepo) -> Self {
+        ServiceBuilder { repo }
     }
     pub fn build(self) -> Service {
         let ServiceBuilder {
             // TODO attrs
+            repo,
         } = self;
 
         let (signal, exit) = exit_future::signal();
@@ -60,6 +65,7 @@ impl ServiceBuilder {
         // TODO init part from attrs
 
         Service {
+            repo,
             exit,
             signal: Some(signal),
             essential_failed_tx,
@@ -73,6 +79,12 @@ impl ServiceBuilder {
 impl Service {}
 
 impl node_service::AbstractService for Service {
+    fn locked_repo(&self) -> &FsLockedRepo {
+        &self.repo
+    }
+    fn keystore(&self) -> Keystore {
+        self.repo.keystore()
+    }
     fn spawn_task(
         &self,
         name: impl Into<Cow<'static, str>>,

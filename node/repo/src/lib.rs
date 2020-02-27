@@ -101,7 +101,10 @@ impl FsRepo {
         if !exist(&path) {
             return Err(io::Error::new(
                 io::ErrorKind::NotFound,
-                "repo is not exist, you should init first.",
+                format!(
+                    "repo {{{:}}} is not exist, you should init first.",
+                    path.display()
+                ),
             ));
         }
         Ok(FsRepo {
@@ -140,11 +143,11 @@ impl FsRepo {
         Ok(buf)
     }
 
-    pub fn lock(&self, repo_type: RepoType) -> io::Result<FsLockedRepo> {
+    pub fn lock(&self) -> io::Result<FsLockedRepo> {
         let file = lock(&self.path, FS_LOCK)?;
         let metadata = MetaData {
             path: self.path.to_owned(),
-            repo_type,
+            repo_type: self.repo_type,
             file,
         };
 
@@ -209,6 +212,12 @@ impl FsLockedRepo {
     pub fn set_api_token(&self, token: &[u8]) -> io::Result<()> {
         let path = self.join(FS_APITOKEN);
         fs::write(path.as_path(), token)
+    }
+
+    pub fn keystore(&self) -> Keystore {
+        Keystore {
+            path: self.metadata.path.to_owned(),
+        }
     }
 }
 

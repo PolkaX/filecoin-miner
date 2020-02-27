@@ -14,6 +14,8 @@ pub use error::Error;
 pub trait AbstractService:
     'static + Future<Output = Result<(), Error>> + Spawn + Send + Unpin
 {
+    fn locked_repo(&self) -> &repo::FsLockedRepo;
+    fn keystore(&self) -> repo::Keystore;
     /// Spawns a task in the background that runs the future passed as parameter.
     fn spawn_task(
         &self,
