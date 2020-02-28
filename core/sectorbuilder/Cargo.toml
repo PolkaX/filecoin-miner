@@ -1,9 +1,15 @@
 [package]
 name = "rust-sectorbuilder"
 version = "0.1.0"
-authors = ["PolkaX <https://github.com/PolkaX>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT OR Apache-2.0"
 
 [dependencies]
+filecoin-proofs-api = { git = "https://github.com/chainpool/rust-filecoin-proofs-api" }
+plum_address = { git = "https://github.com/PolkaX/plum" }
+libc = "0.2.0"
+rand_xorshift = "0.2.0"
+paired = "0.17.0"
+anyhow = "1.0.23"
+rand = "0.7"
+tempfile = "3"
