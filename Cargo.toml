@@ -4,6 +4,8 @@ members = [
     "bin/storage-miner",
     "core/api",
     "core/sectorbuilder",
+    "core/miner",
+    "core/gen",
     "node/config",
     "node/repo",
     "node/utils",

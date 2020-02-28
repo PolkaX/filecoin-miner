@@ -1,0 +1,24 @@
+[package]
+name = "miner"
+version = "0.1.0"
+authors = ["Liu-Cheng Xu <xuliuchengxlc@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4"
+lru = "0.4"
+bytes = "0.5"
+anyhow = "1.0"
+chrono = "0.4"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+cid = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-cid", branch = "develop", features = ["serde_support"] }
+block_format = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-block-format", branch = "filecoin-master" }
+serde_cbor = { git = "https://github.com/PolkaX/cbor", branch = "f64ser-hack", features = ["tags"] }
+rust-ipld-cbor = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-ipld-cbor", branch = "filecoin-master", features = ["bigint"] }
+
+types = { git = "https://github.com/PolkaX/plum", package = "types" }
+api = { path = "../api", package = "rust-api" }
+gen = { path = "../gen", package = "gen" }
