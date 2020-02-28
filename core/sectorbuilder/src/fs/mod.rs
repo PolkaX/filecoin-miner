@@ -354,7 +354,8 @@ impl FS {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, Eq, PartialEq)]
+#[serde(rename_all = "PascalCase")]
 pub struct PathConfig {
     path: PathBuf,
     cache: bool,
@@ -366,7 +367,7 @@ impl Default for PathConfig {
         let mut path = PathBuf::new();
         path.push("/tmp/test");
         PathConfig {
-            path: path,
+            path,
             cache: true,
             weight: 0,
         }

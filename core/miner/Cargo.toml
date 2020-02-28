@@ -14,11 +14,11 @@ anyhow = "1.0"
 chrono = "0.4"
 thiserror = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-cid = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-cid", branch = "develop", features = ["serde_support"] }
-block_format = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-block-format", branch = "filecoin-master" }
+cid = { package = "rust-cid", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master", features = ["serde_support"] }
+block_format = { package = "rust-block-format", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 serde_cbor = { git = "https://github.com/PolkaX/cbor", branch = "f64ser-hack", features = ["tags"] }
-rust-ipld-cbor = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-ipld-cbor", branch = "filecoin-master", features = ["bigint"] }
+rust-ipld-cbor = { package = "rust-ipld-cbor", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master", features = ["bigint"] }
 
-types = { git = "https://github.com/PolkaX/plum", package = "types" }
-api = { path = "../api", package = "rust-api" }
-gen = { path = "../gen", package = "gen" }
+types = { package = "types", git = "https://github.com/PolkaX/plum" }
+api = { package = "rust-api", path = "../api" }
+gen = { package = "gen", path = "../gen" }

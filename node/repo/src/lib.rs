@@ -198,10 +198,11 @@ impl FsLockedRepo {
     }
 
     pub fn datastore(&self, name: &str) -> io::Result<namespace::NSDatastore<RocksDB>> {
+        let prefix = key::Key::new(name);
         unsafe {
-            self.ds.add_column(name).map_err(other_io_err)?;
+            self.ds.add_column(&prefix).map_err(other_io_err)?;
         }
-        Ok(namespace::wrap(self.ds.clone(), key::Key::new(name)))
+        Ok(namespace::wrap(self.ds.clone(), prefix))
     }
 
     pub fn set_api_endpoint(&self, addr: &Multiaddr) -> io::Result<()> {

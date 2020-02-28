@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-types = { git = "https://github.com/PolkaX/plum", package = "types" }
-ipld-cbor = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-ipld-cbor", branch = "develop", features = ["bigint"] }
+types = { package = "types", git = "https://github.com/PolkaX/plum" }
+ipld-cbor = { package = "rust-ipld-cbor", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master", features = ["bigint"] }

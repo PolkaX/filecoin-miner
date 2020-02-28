@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-api = { path = "../api", package = "rust-api" }
-types = { git = "https://github.com/PolkaX/plum", package = "types" }
+api = { package = "rust-api", path = "../api" }
+types = { package = "types", git = "https://github.com/PolkaX/plum" }

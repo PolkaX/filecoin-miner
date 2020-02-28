@@ -2,7 +2,7 @@ mod default;
 mod utils;
 
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::Duration;
 
 use node_utils::other_io_err;
@@ -109,7 +109,7 @@ pub struct SectorBuilder {
     path: String,
     // todo, change to PathConfig in rust-sectorbuilder
     #[serde(skip_serializing_if = "Vec::is_empty")]
-    storage: Vec<PathBuf>,
+    storage: Vec<sectorbuilder::fs::PathConfig>,
     worker_count: usize,
 
     disable_local_pre_commit: bool,

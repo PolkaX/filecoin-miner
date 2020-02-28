@@ -9,7 +9,7 @@ use futures::{
     future::{select, FutureObj},
     task::Spawn,
     task::{Context, Poll, SpawnError},
-    Future, FutureExt, SinkExt, Stream, StreamExt,
+    Future, FutureExt, SinkExt, Stream,
 };
 
 use async_std::task;

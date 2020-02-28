@@ -8,6 +8,12 @@ edition = "2018"
 
 [dependencies]
 log = "0.4"
+env_logger = "0.7.0"
+atty = "0.2.13"
+regex = "1.3.1"
+time = "0.1.42"
+ansi_term = "0.12.1"
+lazy_static = "1.4.0"
 dirs = "2.0"
 structopt = "0.3"
 exit-future = "0.2"
@@ -22,3 +28,4 @@ api = { package = "rust-api", path = "../../core/api" }
 sector-builder = { package = "rust-sectorbuilder", path = "../../core/sectorbuilder" }
 node-service = { path = "../../node/service" }
 repo = { path = "../../node/repo" }
+node-utils = { path = "../../node/utils" }

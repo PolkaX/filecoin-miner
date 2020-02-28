@@ -1,6 +1,6 @@
 // Copyright 2020 PolkaX
 
-mod fs;
+pub mod fs;
 #[cfg(test)]
 mod test;
 mod types;

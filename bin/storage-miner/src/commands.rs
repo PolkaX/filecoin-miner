@@ -31,6 +31,9 @@ impl Default for RepoPath {
 
 #[derive(StructOpt, Debug)]
 pub struct Command {
+    /// Sets a custom logging filter.
+    #[structopt(short = "l", long = "log", value_name = "LOG_PATTERN")]
+    pub log: Option<String>,
     #[structopt(long, default_value, parse(from_os_str))]
     pub repo_path: RepoPath,
     #[structopt(subcommand)]
@@ -67,7 +70,7 @@ pub struct RunCommand {
 pub struct InitCommand {
     /// specify the address of an already created miner actor
     #[structopt(long)]
-    pub actor: String,
+    pub actor: Option<String>,
     /// enable genesis mining (DON'T USE ON BOOTSTRAPPED NETWORK)
     #[structopt(long)]
     pub genesis_miner: bool,
@@ -80,10 +83,9 @@ pub struct InitCommand {
     /// owner key to use
     #[structopt(long, short)]
     pub owner: String,
-    // todo default sector_size
     /// specify sector size to use
     #[structopt(long)]
-    pub sector_size: usize,
+    pub sector_size: Option<usize>,
     /// specify set of presealed sectors for starting as a genesis miner
     #[structopt(long)]
     pub pre_sealed_sectors: Option<String>,
