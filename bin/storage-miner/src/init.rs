@@ -3,13 +3,15 @@ use std::io;
 use std::path::PathBuf;
 
 use ds_rocksdb::DatabaseConfig;
-use log::{error, info, warn};
 use repo::{FsRepo, RepoType};
 
 use crate::commands::InitCommand;
+use crate::error::*;
 use crate::params;
 
-pub fn run_init(com: InitCommand, path: PathBuf, config: DatabaseConfig) -> io::Result<()> {
+use log::{error, info, warn};
+
+pub fn run_init(com: InitCommand, path: PathBuf, config: DatabaseConfig) -> Result<()> {
     info!("Initializing lotus storage miner");
 
     let ssize = com.sector_size.unwrap_or(params::SECTOR_SIZES[0]);

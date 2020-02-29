@@ -32,7 +32,10 @@ impl Default for RepoPath {
 #[derive(StructOpt, Debug)]
 pub struct Command {
     /// Sets a custom logging filter.
-    #[structopt(short = "l", long = "log", value_name = "LOG_PATTERN")]
+    #[structopt(short, long)]
+    pub testnet: bool,
+    /// Sets a custom logging filter.
+    #[structopt(short, long, value_name = "LOG_PATTERN")]
     pub log: Option<String>,
     #[structopt(long, default_value, parse(from_os_str))]
     pub repo_path: RepoPath,

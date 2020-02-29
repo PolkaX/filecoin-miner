@@ -9,14 +9,15 @@ use filecoin_proofs_api::SectorSize;
 use filecoin_proofs_api::{
     seal_pre_commit, PieceInfo, RegisteredSealProof, SealPreCommitResponse, Ticket,
 };
+
+use datastore::Batching;
 use plum_address::Address;
-use std::cmp::Ordering;
-use std::collections::BTreeMap;
-use types::Config;
+
+pub use types::Config;
 
 #[derive(Debug)]
-pub struct SectorBuilder {
-    ds: BTreeMap<String, String>,
+pub struct SectorBuilder<DS: Batching> {
+    ds: DS,
     ssize: u64,
     last_id: u64,
     miner: Address,
@@ -30,10 +31,10 @@ pub struct SectorBuilder {
     file_system: fs::FS,
 }
 
-impl SectorBuilder {
-    pub fn New(cfg: &Config) -> Self {
+impl<DS: Batching> SectorBuilder<DS> {
+    pub fn new(cfg: &Config, datastore: DS) -> Self {
         let sector_builder = SectorBuilder {
-            ds: BTreeMap::new(),
+            ds: datastore,
             ssize: cfg.sector_size,
             last_id: 0, // ds.get_last_sector_id.
             miner: cfg.miner.clone(),

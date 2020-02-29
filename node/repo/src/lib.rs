@@ -3,7 +3,8 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use datastore::{key, namespace, Batching};
+use config::LoadConfig;
+use datastore::{key, namespace};
 use ds_rocksdb::{DatabaseConfig, RocksDB};
 use fs_lock::{lock, unlock};
 use log::info;
@@ -18,6 +19,9 @@ pub const FS_CONFIG: &'static str = "config.toml";
 pub const FS_DATASTORE: &'static str = "datastore";
 pub const FS_LOCK: &'static str = "repo.lock";
 pub const FS_KEYSTORE: &'static str = "keystore";
+
+pub type RepoDatastore = namespace::NSDatastore<RocksDB>;
+
 const LOG_TARGET: &'static str = "repo";
 
 #[derive(Debug, Copy, Clone)]
@@ -197,7 +201,7 @@ impl FsLockedRepo {
         Ok(())
     }
 
-    pub fn datastore(&self, name: &str) -> io::Result<namespace::NSDatastore<RocksDB>> {
+    pub fn datastore(&self, name: &str) -> io::Result<RepoDatastore> {
         let prefix = key::Key::new(name);
         unsafe {
             self.ds.add_column(&prefix).map_err(other_io_err)?;
@@ -219,6 +223,11 @@ impl FsLockedRepo {
         Keystore {
             path: self.metadata.path.to_owned(),
         }
+    }
+
+    pub fn config<C: LoadConfig>(&self) -> io::Result<C> {
+        let path = self.join(FS_CONFIG);
+        C::from_file(path.as_path())
     }
 }
 

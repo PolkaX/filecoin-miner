@@ -82,7 +82,7 @@ fn dummy_cid() -> Cid {
 fn dummy_block_header(cid: Cid) -> BlockHeader {
     let id = 123;
     BlockHeader {
-        miner: Address::new_id_addr(Network::Test, id).unwrap(),
+        miner: Address::new_id_addr(id).unwrap(),
         ticket: Ticket {
             vrf_proof: Vec::new(),
         },

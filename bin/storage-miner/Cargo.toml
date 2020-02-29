@@ -19,13 +19,20 @@ structopt = "0.3"
 exit-future = "0.2"
 futures = "0.3"
 futures-diagnose = "1.0"
+thiserror = "1.0"
 async-std = { version = "1.5", features = ["unstable"] }
 
+# ipfs
 datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 ds-rocksdb = { package = "rust-ds-rocksdb", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+# plum
+plum_address = { git = "https://github.com/PolkaX/plum" }
 
+# core
 api = { package = "rust-api", path = "../../core/api" }
-sector-builder = { package = "rust-sectorbuilder", path = "../../core/sectorbuilder" }
+sectorbuilder = { package = "rust-sectorbuilder", path = "../../core/sectorbuilder" }
+# node
 node-service = { path = "../../node/service" }
 repo = { path = "../../node/repo" }
 node-utils = { path = "../../node/utils" }
+node-config = { path = "../../node/config" }

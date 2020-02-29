@@ -1,17 +1,19 @@
 // Copyright 2020 PolkaX
+mod error;
 
-use libc::statfs;
-use plum_address::Address;
 use std::{
-    cmp::Ordering,
     collections::HashMap,
-    error::Error,
     ffi::CString,
     fmt, fs, mem,
     path::{Path, PathBuf},
     str::FromStr,
     sync::Mutex,
 };
+
+use libc::statfs;
+use plum_address::Address;
+
+pub use error::*;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum DataType {
@@ -24,38 +26,8 @@ pub enum DataType {
 impl DataType {
     fn over_head(&self) -> u64 {
         match self {
-            Cache => 11,
-            Staging => 1,
-            Sealed => 1,
-            Unsealed => 1,
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum ErrorKind {
-    NotFound,
-    Exists,
-    NoSuitablePath,
-}
-
-#[derive(Debug)]
-pub struct FileSystemError {
-    kind: ErrorKind,
-}
-
-impl fmt::Display for FileSystemError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.description())
-    }
-}
-
-impl Error for FileSystemError {
-    fn description(&self) -> &str {
-        match self.kind {
-            ErrorKind::NotFound => "sector not found",
-            ErrorKind::Exists => "sector already exists",
-            ErrorKind::NoSuitablePath => "no suitable path for sector f    ond",
+            DataType::Cache => 11,
+            _ => 1,
         }
     }
 }
@@ -385,6 +357,11 @@ mod tests {
 
     #[test]
     fn test_path_utils() {
+        use plum_address::{set_network, Network};
+        unsafe {
+            set_network(Network::Test);
+        }
+
         let sp = SectorPath::new("/aoe/aaa-oeu/cache/s-t0999-84");
 
         let i = sp.id().unwrap();

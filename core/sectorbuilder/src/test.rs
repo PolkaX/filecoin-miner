@@ -88,6 +88,12 @@ fn build_sector(
 
 #[test]
 fn seal_pre_commit_test() -> Result<()> {
+    use datastore::basic_ds::new_map_datastore;
+    use plum_address::{set_network, Network};
+    unsafe {
+        set_network(Network::Test);
+    }
+
     let rng = &mut XorShiftRng::from_seed(TEST_SEED);
 
     let sector_size = SECTOR_SIZE_2_KIB;
@@ -129,7 +135,9 @@ fn seal_pre_commit_test() -> Result<()> {
         paths: vec![fs::PathConfig::default()],
     };
 
-    let mut sector_builder = SectorBuilder::New(&config);
+    let ds = new_map_datastore();
+
+    let mut sector_builder = SectorBuilder::new(&config, ds);
     let ticket = rng.gen();
     sector_builder.seal_pre_commit(1, ticket, &piece_infos);
 

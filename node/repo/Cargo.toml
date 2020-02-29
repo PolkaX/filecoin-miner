@@ -16,5 +16,5 @@ fs-lock = { package = "rust-fs-lock", git = "https://github.com/PolkaX/rust-ipfs
 datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 ds-rocksdb = { package = "rust-ds-rocksdb", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 
-config = { path = "../config" }
+config = { package = "node-config", path = "../config" }
 node-utils = { path = "../utils" }

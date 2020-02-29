@@ -6,6 +6,7 @@ use std::path::Path;
 use std::time::Duration;
 
 use node_utils::other_io_err;
+use plum_address::Address;
 use serde::{de, Deserialize, Serialize};
 
 pub use utils::set_role;
@@ -35,8 +36,8 @@ where
 #[serde(rename_all = "PascalCase")]
 pub struct Common {
     #[serde(rename = "API")]
-    api: API,
-    libp2p: Libp2p,
+    pub api: API,
+    pub libp2p: Libp2p,
 }
 
 // FullNode is a full node config
@@ -44,8 +45,8 @@ pub struct Common {
 #[serde(rename_all = "PascalCase")]
 pub struct FullNode {
     #[serde(flatten)]
-    common: Common,
-    metrics: Metrics,
+    pub common: Common,
+    pub metrics: Metrics,
 }
 
 impl LoadConfig for FullNode {}
@@ -57,8 +58,26 @@ impl LoadConfig for FullNode {}
 #[serde(rename_all = "PascalCase")]
 pub struct StorageMiner {
     #[serde(flatten)]
-    common: Common,
-    sector_builder: SectorBuilder,
+    pub common: Common,
+    pub sector_builder: SectorBuilder,
+}
+
+impl SectorBuilder {
+    pub fn into_sectorbuilder_config(
+        self,
+        sector_size: usize,
+        addr: Address,
+    ) -> sectorbuilder::Config {
+        sectorbuilder::Config {
+            sector_size: sector_size as u64,
+            miner: addr,
+            worker_threads: self.worker_count as u8,
+            fall_back_last_id: 0,
+            no_commit: self.disable_local_commit,
+            no_pre_commit: self.disable_local_pre_commit,
+            paths: self.storage,
+        }
+    }
 }
 
 impl LoadConfig for StorageMiner {}
@@ -96,24 +115,24 @@ pub struct Libp2p {
 #[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Default)]
 #[serde(default, rename_all = "PascalCase")]
 pub struct Metrics {
-    nickname: String,
-    head_notifs: bool,
-    pubsub_tracing: bool,
+    pub nickname: String,
+    pub head_notifs: bool,
+    pub pubsub_tracing: bool,
 }
 
 // // storage Miner
 
-#[derive(Serialize, Deserialize, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Debug, Clone)]
 #[serde(default, rename_all = "PascalCase")]
 pub struct SectorBuilder {
-    path: String,
-    // todo, change to PathConfig in rust-sectorbuilder
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    storage: Vec<sectorbuilder::fs::PathConfig>,
-    worker_count: usize,
+    pub path: String,
+    pub worker_count: usize,
 
-    disable_local_pre_commit: bool,
-    disable_local_commit: bool,
+    pub disable_local_pre_commit: bool,
+    pub disable_local_commit: bool,
+    // could only put end of this struct, due to limit of `toml`
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub storage: Vec<sectorbuilder::fs::PathConfig>,
 }
 
 pub fn default_full_node() -> FullNode {
@@ -137,6 +156,7 @@ pub fn config_comment<S: Serialize>(obj: &S) -> io::Result<String> {
 }
 
 #[test]
+#[serial_test::serial]
 fn test_storage_config() {
     set_role(Role::StorageMiner);
     let expert = r#"# Default config:
@@ -168,6 +188,7 @@ fn test_storage_config() {
 }
 
 #[test]
+#[serial_test::serial]
 fn test_fullnode_config() {
     let expert = r#"# Default config:
 [API]
@@ -185,6 +206,7 @@ fn test_fullnode_config() {
 #  HeadNotifs = false
 #  PubsubTracing = false
 #"#;
+    set_role(Role::FullNode);
     let config = default_full_node();
     let s = config_comment(&config).unwrap();
     assert_eq!(s, expert);

@@ -1,8 +1,11 @@
+mod builder;
+mod storageminer;
+
 use std::borrow::Cow;
 use std::pin::Pin;
+use std::sync::Arc;
 
-use log::{debug, error};
-
+use async_std::task;
 use exit_future::{Exit, Signal};
 use futures::{
     channel::mpsc,
@@ -12,13 +15,20 @@ use futures::{
     Future, FutureExt, SinkExt, Stream,
 };
 
-use async_std::task;
+use repo::{FsLockedRepo, Keystore, RepoDatastore};
+use sectorbuilder::SectorBuilder;
 
-use repo::{FsLockedRepo, Keystore};
+use log::{debug, error};
+
+pub use builder::ServiceBuilder;
 
 pub struct Service {
     /// repo
     repo: FsLockedRepo,
+
+    /// Sector Builder
+    sectorbuilder: Arc<SectorBuilder<RepoDatastore>>,
+
     /// A future that resolves when the service has exited, this is useful to
     /// make sure any internally spawned futures stop when the service does.
     exit: Exit,
@@ -36,44 +46,6 @@ pub struct Service {
     /// Receiver for futures that must be spawned as background tasks.
     to_spawn_rx:
         mpsc::UnboundedReceiver<(Pin<Box<dyn Future<Output = ()> + Send>>, Cow<'static, str>)>,
-}
-
-pub struct ServiceBuilder {
-    repo: FsLockedRepo,
-}
-
-impl ServiceBuilder {
-    pub fn new(repo: FsLockedRepo) -> Self {
-        ServiceBuilder { repo }
-    }
-    pub fn build(self) -> Service {
-        let ServiceBuilder {
-            // TODO attrs
-            repo,
-        } = self;
-
-        let (signal, exit) = exit_future::signal();
-
-        // message bus
-        // A side-channel for essential tasks to communicate shutdown.
-        let (essential_failed_tx, essential_failed_rx) = mpsc::unbounded();
-        // List of asynchronous tasks to spawn. We collect them, then spawn them all at once.
-        let (to_spawn_tx, to_spawn_rx) =
-            mpsc::unbounded::<(Pin<Box<dyn Future<Output = ()> + Send>>, Cow<'static, str>)>();
-        // todo send channel sender into other part
-
-        // TODO init part from attrs
-
-        Service {
-            repo,
-            exit,
-            signal: Some(signal),
-            essential_failed_tx,
-            essential_failed_rx,
-            to_spawn_tx,
-            to_spawn_rx,
-        }
-    }
 }
 
 impl Service {}

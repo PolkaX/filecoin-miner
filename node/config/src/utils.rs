@@ -9,15 +9,20 @@ use serde::{de, de::Error, Deserialize, Serialize, Serializer};
 use super::Role;
 
 // trick global to decide the default value of `listen_address`. should set once before.
-static mut ROLE: Role = Role::FullNode;
+// static mut ROLE: Role = Role::FullNode;
+lazy_static::lazy_static! {
+    static ref ROLE: Box<Role> = Box::new(Role::FullNode);
+}
 
 pub fn set_role(r: Role) {
     unsafe {
-        ROLE = r;
+        let n = &**ROLE as *const Role as *mut Role;
+        let n = &mut *n;
+        *n = r;
     }
 }
 pub fn get_role() -> Role {
-    unsafe { ROLE }
+    **ROLE
 }
 
 pub fn from_file<T: de::DeserializeOwned + Default>(path: &Path) -> io::Result<T> {

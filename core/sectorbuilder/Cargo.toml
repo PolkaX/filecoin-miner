@@ -5,8 +5,7 @@ edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-filecoin-proofs-api = { git = "https://github.com/chainpool/rust-filecoin-proofs-api" }
-plum_address = { git = "https://github.com/PolkaX/plum" }
+thiserror = "1.0"
 libc = "0.2.0"
 rand_xorshift = "0.2.0"
 paired = "0.17.0"
@@ -14,3 +13,10 @@ anyhow = "1.0.23"
 rand = "0.7"
 tempfile = "3"
 serde = { version = "1.0", features = ["derive"] }
+
+# rust impl
+filecoin-proofs-api = { git = "https://github.com/chainpool/rust-filecoin-proofs-api" }
+# ipfs
+datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+# plum
+plum_address = { git = "https://github.com/PolkaX/plum" }
