@@ -10,9 +10,13 @@ pub struct MinerPower {
     pub total_power: CborBigInt,
 }
 
-pub type MethodCall = std::result::Result<MessageReceipt, &'static str>;
+pub struct ChainSectorInfo {
+    pub sector_id: u64,
+    pub comm_d: Vec<u8>,
+    pub comm_r: Vec<u8>,
+}
 
-pub type ChainSectorInfo = u8;
+pub type MethodCall = std::result::Result<MessageReceipt, &'static str>;
 
 pub trait FullNode {
     // chain
@@ -42,7 +46,7 @@ pub trait FullNode {
     fn state_miner_power(&self, _: &Address, _: &TipSet) -> Result<MinerPower>;
     fn state_miner_worker(&self, _: &Address, _: &TipSet) -> Result<Address>;
     fn state_miner_sector_size(&self, _: &Address, _: &TipSet) -> Result<u64>;
-    fn state_miner_proving_set(&self, _: &Address, _: &TipSet) -> Result<ChainSectorInfo>;
+    fn state_miner_proving_set(&self, _: &Address, _: &TipSet) -> Result<Vec<ChainSectorInfo>>;
 
     fn state_call(&self, _: &Message, _: &TipSet) -> Result<MethodCall>;
 }

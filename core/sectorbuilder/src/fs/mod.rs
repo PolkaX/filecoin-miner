@@ -179,7 +179,7 @@ impl FS {
         let c_path = CString::new(path.as_os_str().to_str().unwrap()).unwrap();
         let value = unsafe { statfs(c_path.as_ptr(), &mut fs_stat) };
         if value == 0 {
-            let fsavail = fs_stat.f_bavail as i64 * fs_stat.f_bsize;
+            let fsavail = fs_stat.f_bavail as i64 * fs_stat.f_bsize as i64;
             let avail = fsavail - self.reserved_bytes(path);
             Some((avail, fsavail))
         } else {

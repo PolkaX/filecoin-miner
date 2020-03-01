@@ -15,6 +15,9 @@ use plum_address::Address;
 
 pub use types::Config;
 
+pub use filecoin_proofs_api::fr32;
+pub use filecoin_proofs_api::Candidate as EPostCandidate;
+
 #[derive(Debug)]
 pub struct SectorBuilder<DS: Batching> {
     ds: DS,
