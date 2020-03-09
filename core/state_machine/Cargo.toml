@@ -1,0 +1,12 @@
+[package]
+name = "rust-statemachine"
+version = "0.1.0"
+authors = ["PolkaX <https://github.com/PolkaX>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+filecoin-proofs-api = { git = "https://github.com/polkax/rust-filecoin-proofs-api" }
+cid = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-cid", branch = "filecoin-master", features = ["serde_support"] }
+crossbeam = "0.7"
