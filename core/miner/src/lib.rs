@@ -235,7 +235,7 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
             return Err(Error::EmptyProofInput);
         }
 
-        let proof_in = 0u8;
+        let proof_in = gen::ProofInput::default();
 
         // get pending message early.
         let pending = self.api.mpool_pending(&base.ts)?;

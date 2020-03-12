@@ -101,6 +101,15 @@ pub struct InitCommand {
     /// attempt to symlink to presealed sectors instead of copying them into place
     #[structopt(long)]
     pub symlink_imported_sectors: bool,
+    /// Gateway of fetch params ("https://ipfs.io/ipfs/")
+    #[structopt(
+        long,
+        default_value = "https://proof-parameters.s3.cn-south-1.jdcloud-oss.com/ipfs/"
+    )]
+    pub ipfs_gateway: String,
+    /// Path of fetch params
+    #[structopt(long, default_value = "/var/tmp/filecoin-proof-parameters/")]
+    pub params_path: String,
 }
 
 #[derive(StructOpt, Debug)]

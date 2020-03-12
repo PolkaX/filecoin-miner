@@ -11,4 +11,5 @@ members = [
     "node/repo",
     "node/utils",
     "node/service",
+    "node/paramfetch",
 ]

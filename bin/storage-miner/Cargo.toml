@@ -20,6 +20,7 @@ exit-future = "0.2"
 futures = "0.3"
 futures-diagnose = "1.0"
 thiserror = "1.0"
+serde_json = "1.0"
 async-std = { version = "1.5", features = ["unstable"] }
 
 # ipfs
@@ -36,3 +37,4 @@ node-service = { path = "../../node/service" }
 repo = { path = "../../node/repo" }
 node-utils = { path = "../../node/utils" }
 node-config = { path = "../../node/config" }
+node-paramfetch = { path = "../../node/paramfetch" }

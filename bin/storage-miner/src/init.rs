@@ -10,6 +10,7 @@ use crate::error::*;
 use crate::params;
 
 use log::{error, info, warn};
+use node_paramfetch::get_params;
 
 pub fn run_init(com: InitCommand, path: PathBuf, config: DatabaseConfig) -> Result<()> {
     info!("Initializing lotus storage miner");
@@ -19,6 +20,14 @@ pub fn run_init(com: InitCommand, path: PathBuf, config: DatabaseConfig) -> Resu
 
     info!("Checking proof parameters");
 
+    let parameters: serde_json::Value =
+        serde_json::from_reader(&include_bytes!("../../assets/parameters.json")[..]).unwrap();
+    let _ = get_params(
+        ssize as u64,
+        &com.ipfs_gateway,
+        PathBuf::from(&com.params_path),
+        parameters,
+    )?;
     info!("Trying to connect to full node RPC");
 
     // todo check version
