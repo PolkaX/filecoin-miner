@@ -14,11 +14,14 @@ anyhow = "1.0"
 chrono = "0.4"
 thiserror = "1.0"
 serde = { version = "1.0", features = ["derive"] }
+# ipfs
 cid = { package = "rust-cid", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master", features = ["serde_support"] }
 block_format = { package = "rust-block-format", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 serde_cbor = { git = "https://github.com/PolkaX/cbor", branch = "f64ser-hack", features = ["tags"] }
 rust-ipld-cbor = { package = "rust-ipld-cbor", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master", features = ["bigint"] }
-
-types = { package = "types", git = "https://github.com/PolkaX/plum" }
+# plum
+types = { path = "../../../vendor/plum/chain/types" }
+plum_bigint = { path = "../../../vendor/plum/chain/bigint" }
+# local
 api = { package = "rust-api", path = "../api" }
 gen = { package = "gen", path = "../gen" }

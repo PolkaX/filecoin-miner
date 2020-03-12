@@ -11,8 +11,11 @@ sha2 = "0.8"
 anyhow = "1.0"
 paired = { version = "0.18.0" }
 byteorder = "1.3"
-api = { path = "../api", package = "rust-api" }
-sigs = { git = "https://github.com/PolkaX/plum", package = "sigs" }
-types = { git = "https://github.com/PolkaX/plum", package = "types" }
 
+# plum
+sigs = { path = "../../../vendor/plum/sigs" }
+types = { path = "../../../vendor/plum/chain/types" }
+plum_bigint = { path = "../../../vendor/plum/chain/bigint" }
+
+api = { path = "../api", package = "rust-api" }
 sectorbuilder = { path = "../sectorbuilder", package = "rust-sectorbuilder" }

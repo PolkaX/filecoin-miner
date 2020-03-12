@@ -5,7 +5,9 @@ use paired::bls12_381::Bls12;
 use sectorbuilder::EPostCandidate;
 use sha2::{Digest, Sha256};
 use std::cmp::Ordering;
-use types::{Address, CborBigInt, EPostProof, EPostTicket, Protocol, TipSet};
+use types::{Address, EPostProof, EPostTicket, Protocol, TipSet};
+
+use plum_bigint::BigInt;
 
 pub const DSepTicket: u64 = 1;
 pub const DSepElectionPost: u64 = 2;
@@ -107,8 +109,8 @@ fn election_post_challenge_count(sectors: u64, faults: u64) -> u64 {
 }
 
 // TODO: impl is_ticket_winner in block_header?
-fn is_ticket_winner(partial_ticket: &[u8], ssizeI: u64, snum: u64, totpow: &CborBigInt) -> bool {
-    let ssize = CborBigInt(ssizeI.into());
+fn is_ticket_winner(partial_ticket: &[u8], ssizeI: u64, snum: u64, totpow: &BigInt) -> bool {
+    let ssize: BigInt = ssizeI.into();
     let ssampled = election_post_challenge_count(snum, 0);
 
     let h = sha256_sum(partial_ticket);

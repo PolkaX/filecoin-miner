@@ -8,5 +8,5 @@ edition = "2018"
 
 [dependencies]
 filecoin-proofs-api = { git = "https://github.com/polkax/rust-filecoin-proofs-api" }
-cid = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-cid", branch = "filecoin-master", features = ["serde_support"] }
+cid = { package = "rust-cid", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master", features = ["serde_support"] }
 crossbeam = "0.7"

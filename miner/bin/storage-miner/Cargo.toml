@@ -27,7 +27,7 @@ async-std = { version = "1.5", features = ["unstable"] }
 datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 ds-rocksdb = { package = "rust-ds-rocksdb", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 # plum
-plum_address = { git = "https://github.com/PolkaX/plum" }
+plum_address = { path = "../../../vendor/plum/chain/address" }
 
 # core
 api = { package = "rust-api", path = "../../core/api" }

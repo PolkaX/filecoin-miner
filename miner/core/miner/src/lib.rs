@@ -9,9 +9,10 @@ use chrono::{DateTime, NaiveDateTime, Utc};
 use gen::ElectionPoStProver;
 use log::{debug, error, info, warn};
 use lru::LruCache;
+use plum_bigint::BigInt;
 use thiserror::Error;
 use types::{
-    Address, BlockHeader, BlockMsg, CborBigInt, Cid, EPostProof, Network, SignKeyType, Signature,
+    Address, BlockHeader, BlockMsg, Cid, EPostProof, Network, SignKeyType, Signature,
     SignedMessage, Ticket, TipSet, TipSetError,
 };
 
@@ -92,7 +93,7 @@ fn dummy_block_header(cid: Cid) -> BlockHeader {
             candidates: Vec::new(),
         },
         parents: Vec::new(),
-        parent_weight: CborBigInt(0u128.into()),
+        parent_weight: 0u128.into(),
         height: 0u64,
         parent_state_root: cid.clone(),
         parent_message_receipts: cid.clone(),
@@ -183,7 +184,7 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
             .api
             .state_miner_power(addr, ts)
             .map_err(|_| Error::MaybeSlashed(addr.clone()))?;
-        return Ok(power.miner_power > CborBigInt(0.into()));
+        return Ok(power.miner_power > 0.into());
     }
 
     fn get_miner_worker(&self, addr: &Address, ts: Option<&TipSet>) -> Result<Address> {

@@ -1,13 +1,14 @@
 use anyhow::Result;
+use plum_bigint::BigInt;
 use types::{
-    Address, BlockMsg, CborBigInt, EPostProof, Message, MessageReceipt, SignedMessage, Ticket,
-    TipSet, TipSetKey,
+    Address, BlockMsg, EPostProof, Message, MessageReceipt, SignedMessage, Ticket, TipSet,
+    TipSetKey,
 };
 
 #[derive(Debug, Clone)]
 pub struct MinerPower {
-    pub miner_power: CborBigInt,
-    pub total_power: CborBigInt,
+    pub miner_power: BigInt,
+    pub total_power: BigInt,
 }
 
 pub struct ChainSectorInfo {

@@ -15,8 +15,10 @@ tempfile = "3"
 serde = { version = "1.0", features = ["derive"] }
 
 # rust impl
-filecoin-proofs-api = { git = "https://github.com/chainpool/rust-filecoin-proofs-api" }
+filecoin-proofs-api = { git = "https://github.com/polkax/rust-filecoin-proofs-api" }
 # ipfs
+cid = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-cid", branch = "filecoin-master", features = ["serde_support"] }
 datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 # plum
-plum_address = { git = "https://github.com/PolkaX/plum" }
+plum_address = { path = "../../../vendor/plum/chain/address" }
+abi = { path = "../../../vendor/plum/chain/abi" }

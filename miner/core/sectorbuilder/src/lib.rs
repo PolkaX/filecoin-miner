@@ -1,13 +1,15 @@
 // Copyright 2020 PolkaX
 
 pub mod fs;
+pub mod interface;
 #[cfg(test)]
 mod test;
 mod types;
 
-use filecoin_proofs_api::SectorSize;
+use abi::sector::SectorSize;
 use filecoin_proofs_api::{
-    seal_pre_commit, PieceInfo, RegisteredSealProof, SealPreCommitResponse, Ticket,
+    seal::{seal_pre_commit_phase1, seal_pre_commit_phase2, SealPreCommitPhase2Output},
+    PieceInfo, RegisteredSealProof, Ticket,
 };
 
 use datastore::Batching;
@@ -57,7 +59,7 @@ impl<DS: Batching> SectorBuilder<DS> {
         sector_id: u64,
         ticket: Ticket,
         pieces: &[PieceInfo],
-    ) -> SealPreCommitResponse {
+    ) -> Result<SealPreCommitPhase2Output, anyhow::Error> {
         let cache_dir = self
             .file_system
             .force_alloc_sector(
@@ -91,15 +93,17 @@ impl<DS: Batching> SectorBuilder<DS> {
             )
             .unwrap();
         let prover_id = [0; 32];
-        seal_pre_commit(
+        let phase1 = seal_pre_commit_phase1(
             RegisteredSealProof::StackedDrg2KiBV1,
-            cache_dir,
+            cache_dir.clone(),
             staged_path,
-            sealed_path,
+            sealed_path.clone(),
             prover_id,
             sector_id.into(),
             ticket,
             pieces,
         )
+        .unwrap();
+        seal_pre_commit_phase2(phase1, cache_dir, sealed_path)
     }
 }
