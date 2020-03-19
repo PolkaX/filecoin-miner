@@ -1,14 +1,12 @@
 [package]
 name = "rust-api"
 version = "0.1.0"
-authors = ["Aten <jincxmain@gmail.com>"]
+authors = ["PolkaX <https://github.com/PolkaX>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = "1.0"
-ipld-cbor = { package = "rust-ipld-cbor", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master", features = ["bigint"] }
 
+# plum
 types = { path = "../../../vendor/plum/chain/types" }
-plum_bigint = { path = "../../../vendor/plum/chain/bigint" }
+plum_bigint = { path = "../../../vendor/plum/primitives/bigint" }

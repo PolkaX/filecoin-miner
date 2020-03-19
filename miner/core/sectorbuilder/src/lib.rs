@@ -6,7 +6,7 @@ pub mod interface;
 mod test;
 mod types;
 
-use abi::sector::SectorSize;
+use actors::abi::sector::SectorSize;
 use filecoin_proofs_api::{
     seal::{seal_pre_commit_phase1, seal_pre_commit_phase2, SealPreCommitPhase2Output},
     PieceInfo, RegisteredSealProof, Ticket,

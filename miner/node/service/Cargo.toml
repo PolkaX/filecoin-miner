@@ -1,16 +1,15 @@
 [package]
 name = "node-service"
 version = "0.1.0"
-authors = ["Aten <jincxmain@gmail.com>"]
+authors = ["PolkaX <https://github.com/PolkaX>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 async-std = { version = "1.5", features = ["unstable"] }
-futures = "0.3"
-exit-future = "0.2"
-thiserror = "1.0"
 ctrlc = "3.1"
+exit-future = "0.2"
+futures = "0.3"
+thiserror = "1.0"
 
+# node
 repo = { path = "../repo" }

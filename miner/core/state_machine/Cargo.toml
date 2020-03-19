@@ -4,9 +4,10 @@ version = "0.1.0"
 authors = ["PolkaX <https://github.com/PolkaX>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-filecoin-proofs-api = { git = "https://github.com/polkax/rust-filecoin-proofs-api" }
-cid = { package = "rust-cid", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master", features = ["serde_support"] }
+cid = { version = "0.4", features = ["impl-serde"] }
 crossbeam = "0.7"
+multihash = "0.10"
+
+# filecoin proof
+filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api", branch = "master" }

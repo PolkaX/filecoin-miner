@@ -1,20 +1,19 @@
 [package]
 name = "node-config"
 version = "0.1.0"
-authors = ["Aten <jincxmain@gmail.com>"]
+authors = ["PolkaX <https://github.com/PolkaX>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-toml = "0.5"
-serde = { version = "1.0", features = ["derive"] }
 lazy_static = "1.4"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.5"
 
-plum_address = { path = "../../../vendor/plum/chain/address" }
-
+# plum
+plum_address = { path = "../../../vendor/plum/primitives/address" }
+# core
 sectorbuilder = { package = "rust-sectorbuilder", path = "../../core/sectorbuilder" }
-
+# node
 node-utils = { path = "../utils" }
 
 [dev-dependencies]

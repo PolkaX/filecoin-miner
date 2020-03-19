@@ -2,19 +2,7 @@
 
 use super::*;
 use anyhow::Result;
-use filecoin_proofs_api::filecoin_proofs_v1;
-use filecoin_proofs_api::filecoin_proofs_v1::constants::{
-    DRG_DEGREE, EXP_DEGREE, SECTOR_SIZE_2_KIB,
-};
-use filecoin_proofs_api::filecoin_proofs_v1::storage_proofs;
-use filecoin_proofs_api::filecoin_proofs_v1::storage_proofs::drgraph::{new_seed, Graph};
-use filecoin_proofs_api::filecoin_proofs_v1::storage_proofs::fr32::fr_into_bytes;
-use filecoin_proofs_api::filecoin_proofs_v1::storage_proofs::stacked::StackedBucketGraph;
-use filecoin_proofs_api::filecoin_proofs_v1::storage_proofs::util::NODE_SIZE;
-use filecoin_proofs_api::filecoin_proofs_v1::types::DataTree;
-use filecoin_proofs_api::filecoin_proofs_v1::UnpaddedBytesAmount;
-use filecoin_proofs_api::PieceInfo;
-use filecoin_proofs_api::{Commitment, PaddedBytesAmount};
+use filecoin_proofs_api::{PaddedBytesAmount, UnpaddedBytesAmount, RegisteredSealProof};
 use paired::bls12_381::{Bls12, Fr};
 use paired::Engine;
 use plum_address::Address;
@@ -25,7 +13,7 @@ use std::str::FromStr;
 use std::sync::atomic::Ordering;
 use tempfile::NamedTempFile;
 
-type DefaultPieceHasher = storage_proofs::hasher::Sha256Hasher;
+//type DefaultPieceHasher = storage_proofs::hasher::Sha256Hasher;
 const SECTOR_SIZE: u64 = 1024;
 type SectorNumber = u64;
 pub(crate) const TEST_SEED: [u8; 16] = [
@@ -96,7 +84,7 @@ fn seal_pre_commit_test() -> Result<()> {
 
     let rng = &mut XorShiftRng::from_seed(TEST_SEED);
 
-    let sector_size = SECTOR_SIZE_2_KIB;
+    let sector_size = RegisteredSealProof::StackedDrg2KiBV1.sector_size().0;
 
     let number_of_bytes_in_piece =
         UnpaddedBytesAmount::from(PaddedBytesAmount(sector_size.clone()));
@@ -110,14 +98,16 @@ fn seal_pre_commit_test() -> Result<()> {
     piece_file.as_file_mut().sync_all()?;
     piece_file.as_file_mut().seek(SeekFrom::Start(0))?;
 
-    let piece_info = filecoin_proofs_v1::generate_piece_commitment(
+    let piece_info = filecoin_proofs_api::seal::generate_piece_commitment(
+        RegisteredSealProof::StackedDrg2KiBV1,
         piece_file.as_file_mut(),
         number_of_bytes_in_piece,
     )?;
     piece_file.as_file_mut().seek(SeekFrom::Start(0))?;
 
     let mut staged_sector_file = NamedTempFile::new()?;
-    filecoin_proofs_v1::add_piece(
+    filecoin_proofs_api::seal::add_piece(
+        RegisteredSealProof::StackedDrg2KiBV1,
         &mut piece_file,
         &mut staged_sector_file,
         number_of_bytes_in_piece,
@@ -126,7 +116,7 @@ fn seal_pre_commit_test() -> Result<()> {
 
     let piece_infos = vec![piece_info];
     let config = types::Config {
-        sector_size: SECTOR_SIZE_2_KIB,
+        sector_size,
         miner: Address::from_str("t0009").unwrap(),
         worker_threads: 0,
         fall_back_last_id: 0,

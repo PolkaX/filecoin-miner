@@ -180,13 +180,13 @@ mod tests {
             "sector_size": 268435456
             }
         }"#;
-        let j = serde_json::from_str(s).unwrap();
+        let j = serde_json::from_str::<serde_json::Value>(s).unwrap();
         for s in size {
             get_params(
                 s,
                 "https://ipfs.io/ipfs/",
                 PathBuf::from("/tmp/var/tmp/filecoin-proof-parameters/"),
-                j,
+                j.clone(),
             );
         }
     }

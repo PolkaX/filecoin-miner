@@ -1,12 +1,17 @@
 // Copyright 2020 PolkaX
 
-use crate::SectorState;
-use cid::Cid;
+use cid::{Cid, Codec};
 use filecoin_proofs_api::{ChallengeSeed, Commitment, PieceInfo, Ticket};
+
+use crate::SectorState;
 
 pub type Piece = PieceInfo;
 type SealTicket = Ticket;
 type SealSeed = ChallengeSeed;
+
+fn zero_cid() -> Cid {
+    Cid::new_v1(Codec::Raw, multihash::Identity::digest(b""))
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SectorInfo {
@@ -37,10 +42,10 @@ impl SectorInfo {
             commr: [0; 32],
             proof: [0; 32],
             ticket: [0; 32],
-            pre_commit_msg: cid::zero_cid(),
+            pre_commit_msg: zero_cid(),
             seed: [0; 32],
-            commit_msg: cid::zero_cid(),
-            fault_report_msg: cid::zero_cid(),
+            commit_msg: zero_cid(),
+            fault_report_msg: zero_cid(),
         }
     }
 }

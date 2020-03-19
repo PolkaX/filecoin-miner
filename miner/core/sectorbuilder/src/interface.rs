@@ -1,6 +1,6 @@
 // Copyright 2020 PolkaX
 
-use abi::{piece, sector};
+use actors::abi::{piece, sector};
 use cid::Cid;
 
 pub trait Interface {

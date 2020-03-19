@@ -1,24 +1,25 @@
 [package]
 name = "rust-sectorbuilder"
 version = "0.1.0"
+authors = ["PolkaX <https://github.com/PolkaX>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-thiserror = "1.0"
-libc = "0.2.0"
-rand_xorshift = "0.2.0"
-paired = "0.17.0"
 anyhow = "1.0.23"
+cid = { version = "0.4", features = ["impl-serde"] }
+libc = "0.2"
+paired = "0.18.0"
 rand = "0.7"
-tempfile = "3"
+rand_xorshift = "0.2"
 serde = { version = "1.0", features = ["derive"] }
+tempfile = "3"
+thiserror = "1.0"
 
-# rust impl
-filecoin-proofs-api = { git = "https://github.com/polkax/rust-filecoin-proofs-api" }
+# filecoin proof
+filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api", branch = "master" }
 # ipfs
-cid = { git = "https://github.com/PolkaX/rust-ipfs", package = "rust-cid", branch = "filecoin-master", features = ["serde_support"] }
 datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 # plum
-plum_address = { path = "../../../vendor/plum/chain/address" }
-abi = { path = "../../../vendor/plum/chain/abi" }
+plum_address = { path = "../../../vendor/plum/primitives/address" }
+actors = { path = "../../../vendor/plum/chain/actors" }
