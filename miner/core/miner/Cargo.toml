@@ -18,7 +18,7 @@ thiserror = "1.0"
 # ipfs
 block_format = { package = "rust-block-format", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 # plum
-types = { path = "../../../vendor/plum/chain/types" }
+types = { package = "chain-types", path = "../../../vendor/plum/chain/types" }
 plum_bigint = { path = "../../../vendor/plum/primitives/bigint" }
 
 # core

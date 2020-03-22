@@ -13,7 +13,7 @@ sha2 = "0.8"
 # plum
 plum_bigint = { path = "../../../vendor/plum/primitives/bigint" }
 sigs = { path = "../../../vendor/plum/sigs" }
-types = { path = "../../../vendor/plum/chain/types" }
+types = { package = "chain-types", path = "../../../vendor/plum/chain/types" }
 # core
 api = { path = "../api", package = "rust-api" }
 sectorbuilder = { path = "../sectorbuilder", package = "rust-sectorbuilder" }

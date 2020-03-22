@@ -8,5 +8,5 @@ edition = "2018"
 anyhow = "1.0"
 
 # plum
-types = { path = "../../../vendor/plum/chain/types" }
+types = { package = "chain-types", path = "../../../vendor/plum/chain/types" }
 plum_bigint = { path = "../../../vendor/plum/primitives/bigint" }

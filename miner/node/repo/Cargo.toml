@@ -14,7 +14,7 @@ datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-
 ds-rocksdb = { package = "rust-ds-rocksdb", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 # plum
 plum_libp2p = { path = "../../../vendor/plum/libp2p" }
-types = { path = "../../../vendor/plum/chain/types" }
+types = { package = "chain-types", path = "../../../vendor/plum/chain/types" }
 # node
 config = { package = "node-config", path = "../config" }
 node-utils = { path = "../utils" }
