@@ -11,8 +11,10 @@ toml = "0.5"
 
 # plum
 plum_address = { path = "../../../vendor/plum/primitives/address" }
+
 # core
-sectorbuilder = { package = "rust-sectorbuilder", path = "../../core/sectorbuilder" }
+sectorbuilder = { path = "../../core/sectorbuilder" }
+
 # node
 node-utils = { path = "../utils" }
 

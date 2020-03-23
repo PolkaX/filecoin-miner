@@ -8,12 +8,15 @@ edition = "2018"
 anyhow = "1.0"
 byteorder = "1.3"
 paired = "0.18.0"
-sha2 = "0.8"
 
 # plum
+plum_address = { path = "../../../vendor/plum/primitives/address" }
 plum_bigint = { path = "../../../vendor/plum/primitives/bigint" }
-sigs = { path = "../../../vendor/plum/sigs" }
-types = { package = "chain-types", path = "../../../vendor/plum/chain/types" }
+plum_crypto = { path = "../../../vendor/plum/crypto" }
+plum_hashing = { path = "../../../vendor/plum/hashing" }
+plum_ticket = { path = "../../../vendor/plum/primitives/ticket" }
+plum_tipset = { path = "../../../vendor/plum/primitives/tipset" }
+
 # core
-api = { path = "../api", package = "rust-api" }
-sectorbuilder = { path = "../sectorbuilder", package = "rust-sectorbuilder" }
+api = { path = "../api" }
+sectorbuilder = { path = "../sectorbuilder" }

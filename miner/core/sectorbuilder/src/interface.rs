@@ -1,7 +1,8 @@
 // Copyright 2020 PolkaX
 
-use actors::abi::{piece, sector};
 use cid::Cid;
+
+use plum_actor::abi::{piece, sector};
 
 pub trait Interface {
     fn add_piece(

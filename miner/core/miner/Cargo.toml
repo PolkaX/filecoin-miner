@@ -17,10 +17,16 @@ thiserror = "1.0"
 
 # ipfs
 block_format = { package = "rust-block-format", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+
 # plum
-types = { package = "chain-types", path = "../../../vendor/plum/chain/types" }
+plum_address = { path = "../../../vendor/plum/primitives/address" }
 plum_bigint = { path = "../../../vendor/plum/primitives/bigint" }
+plum_block = { path = "../../../vendor/plum/primitives/block" }
+plum_crypto = { path = "../../../vendor/plum/crypto" }
+plum_message = { path = "../../../vendor/plum/primitives/message" }
+plum_ticket = { path = "../../../vendor/plum/primitives/ticket" }
+plum_tipset = { path = "../../../vendor/plum/primitives/tipset" }
 
 # core
-api = { package = "rust-api", path = "../api" }
-gen = { package = "gen", path = "../gen" }
+api = { path = "../api" }
+gen = { path = "../gen" }

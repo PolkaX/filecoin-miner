@@ -8,8 +8,9 @@ use datastore::{key, namespace};
 use ds_rocksdb::{DatabaseConfig, RocksDB};
 use fs_lock::{lock, unlock};
 use log::info;
+
 use plum_libp2p::Multiaddr;
-use types::{KeyInfo, KeyStore as KeyStoreT};
+use plum_wallet::{KeyInfo, KeyStore as KeyStoreT};
 
 use node_utils::{base32_decode, other_io_err};
 

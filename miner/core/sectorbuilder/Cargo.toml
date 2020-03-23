@@ -1,9 +1,8 @@
 [package]
-name = "rust-sectorbuilder"
+name = "sectorbuilder"
 version = "0.1.0"
 authors = ["PolkaX <https://github.com/PolkaX>"]
 edition = "2018"
-license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.23"
@@ -18,8 +17,10 @@ thiserror = "1.0"
 
 # filecoin proof
 filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api", branch = "master" }
+
 # ipfs
 datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+
 # plum
 plum_address = { path = "../../../vendor/plum/primitives/address" }
-actors = { path = "../../../vendor/plum/chain/actors" }
+plum_actor = { path = "../../../vendor/plum/chain/actor" }

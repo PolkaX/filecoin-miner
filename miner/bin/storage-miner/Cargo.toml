@@ -24,10 +24,13 @@ thiserror = "1.0"
 # ipfs
 datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 ds-rocksdb = { package = "rust-ds-rocksdb", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+
 # plum
 plum_address = { path = "../../../vendor/plum/primitives/address" }
+
 # core
-sectorbuilder = { package = "rust-sectorbuilder", path = "../../core/sectorbuilder" }
+sectorbuilder = { path = "../../core/sectorbuilder" }
+
 # node
 node-service = { path = "../../node/service" }
 repo = { path = "../../node/repo" }

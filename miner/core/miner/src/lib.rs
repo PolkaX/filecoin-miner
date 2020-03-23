@@ -4,17 +4,22 @@ use std::{
     time::{Duration, Instant, SystemTime},
 };
 
-use api::FullNode;
 use chrono::{DateTime, NaiveDateTime, Utc};
-use gen::ElectionPoStProver;
+use cid::Cid;
 use log::{debug, error, info, warn};
 use lru::LruCache;
-use plum_bigint::BigInt;
 use thiserror::Error;
-use types::{
-    Address, BlockHeader, BlockMsg, Cid, EPostProof, Network, SignKeyType, Signature,
-    SignedMessage, Ticket, TipSet, TipSetError,
-};
+
+use plum_address::{Address, Network};
+use plum_bigint::BigInt;
+use plum_block::{BlockHeader, BlockMsg};
+use plum_crypto::{compute_vrf, Signature, SignatureType};
+use plum_message::SignedMessage;
+use plum_ticket::{EPostProof, Ticket};
+use plum_tipset::Tipset;
+
+use api::FullNode;
+use gen::ElectionPoStProver;
 
 pub const BLOCK_DELAY: u64 = 45;
 pub const PROPAGATION_DELAY: u64 = 5;
@@ -31,8 +36,8 @@ pub enum Error {
     NoMiningPower(Address),
     #[error("Empty ProofInput")]
     EmptyProofInput,
-    #[error("TipSet error {0}")]
-    TipSetError(#[from] TipSetError),
+    #[error("Tipset error {0}")]
+    TipsetError(#[from] plum_tipset::TipsetError),
     #[error("anyhow error {0}")]
     AnyhowError(#[from] anyhow::Error),
     #[error("other error: {0}")]
@@ -41,12 +46,12 @@ pub enum Error {
 
 #[derive(Eq, PartialEq, Debug, Clone)]
 pub struct MiningBase {
-    pub ts: TipSet,
+    pub ts: Tipset,
     pub null_rounds: u64,
 }
 
 impl MiningBase {
-    pub fn new(ts: TipSet) -> Self {
+    pub fn new(ts: Tipset) -> Self {
         Self {
             ts,
             null_rounds: 0u64,
@@ -98,15 +103,9 @@ fn dummy_block_header(cid: Cid) -> BlockHeader {
         parent_state_root: cid.clone(),
         parent_message_receipts: cid.clone(),
         messages: cid,
-        bls_aggregate: Signature {
-            ty: SignKeyType::BLS,
-            data: b"boo! im a signature".to_vec(),
-        },
+        bls_aggregate: Signature::new_bls("boo! im a signature"),
         timestamp: 0u64,
-        block_sig: Signature {
-            ty: SignKeyType::BLS,
-            data: b"boo! im a signature".to_vec(),
-        },
+        block_sig: Signature::new_bls("boo! im a signature"),
         fork_signaling: 0u64,
     }
 }
@@ -179,7 +178,7 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
             .map_err(Into::into)
     }
 
-    fn has_power(&self, addr: &Address, ts: &TipSet) -> Result<bool> {
+    fn has_power(&self, addr: &Address, ts: &Tipset) -> Result<bool> {
         let power = self
             .api
             .state_miner_power(addr, ts)
@@ -187,7 +186,7 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
         return Ok(power.miner_power > 0.into());
     }
 
-    fn get_miner_worker(&self, addr: &Address, ts: Option<&TipSet>) -> Result<Address> {
+    fn get_miner_worker(&self, addr: &Address, ts: Option<&Tipset>) -> Result<Address> {
         // TODO
         // api.state_call()
         //
@@ -195,8 +194,11 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
     }
 
     fn compute_vrf(&self, miner_addr: &Address, input: Vec<u8>) -> Result<Vec<u8>> {
+        todo!()
+        /*
         let worker_addr = self.get_miner_worker(miner_addr, None)?;
-        gen::compute_vrf(&worker_addr, miner_addr, gen::DSepTicket, input).map_err(Into::into)
+        Ok(compute_vrf(&worker_addr, gen::DSepTicket, input, miner_addr).as_bytes())
+        */
     }
 
     fn compute_ticket(&self, addr: &Address, base: &MiningBase) -> Result<Ticket> {
@@ -262,7 +264,7 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
     }
 
     fn mine(&mut self) -> Result<()> {
-        let mut last_base = MiningBase::new(TipSet::new(vec![dummy_block_header(dummy_cid())])?);
+        let mut last_base = MiningBase::new(Tipset::new(vec![dummy_block_header(dummy_cid())])?);
 
         loop {
             // TODO: handle stop singal?
@@ -378,7 +380,7 @@ pub type ActorLookup = u8;
 
 fn select_messages(
     al: ActorLookup,
-    ts: &TipSet,
+    ts: &Tipset,
     msgs: Vec<SignedMessage>,
 ) -> Result<Vec<SignedMessage>> {
     Ok(Vec::new())

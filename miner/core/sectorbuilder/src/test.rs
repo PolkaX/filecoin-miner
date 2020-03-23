@@ -2,7 +2,7 @@
 
 use super::*;
 use anyhow::Result;
-use filecoin_proofs_api::{PaddedBytesAmount, UnpaddedBytesAmount, RegisteredSealProof};
+use filecoin_proofs_api::{PaddedBytesAmount, RegisteredSealProof, UnpaddedBytesAmount};
 use paired::bls12_381::{Bls12, Fr};
 use paired::Engine;
 use plum_address::Address;

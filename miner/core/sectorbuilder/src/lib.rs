@@ -6,17 +6,17 @@ pub mod interface;
 mod test;
 mod types;
 
-use actors::abi::sector::SectorSize;
 use filecoin_proofs_api::{
     seal::{seal_pre_commit_phase1, seal_pre_commit_phase2, SealPreCommitPhase2Output},
     PieceInfo, RegisteredSealProof, Ticket,
 };
 
 use datastore::Batching;
+
+use plum_actor::abi::sector::SectorSize;
 use plum_address::Address;
 
-pub use types::Config;
-
+pub use self::types::Config;
 pub use filecoin_proofs_api::fr32;
 pub use filecoin_proofs_api::Candidate as EPostCandidate;
 
