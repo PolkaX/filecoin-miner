@@ -259,19 +259,19 @@ impl KeyStoreT for Keystore {
         Ok(v)
     }
 
-    fn get(&self, name: &str) -> Result<KeyInfo, Self::Error> {
-        let name = base32_decode(name)
+    fn get<K: AsRef<str>>(&self, key: K) -> Result<Option<KeyInfo>, Self::Error> {
+        let name = base32_decode(key.as_ref())
             .map(|v| String::from_utf8_lossy(&v).to_string())
             .map_err(other_io_err)?;
         let mut path = self.path.to_owned();
-        path.push(name);
+        path.push(key.as_ref());
         // todo permission check
         let v = fs::read(path.as_path())?;
-        serde_json::from_slice(&v).map_err(other_io_err)
+        Ok(Some(serde_json::from_slice(&v).map_err(other_io_err)?))
     }
 
-    fn put(&mut self, name: String, info: KeyInfo) -> Result<(), Self::Error> {
-        let filename = base32_decode(name.as_bytes())
+fn put(&mut self, key: String, info: KeyInfo) -> Result<(), Self::Error> {
+        let filename = base32_decode(key.as_bytes())
             .map(|v| String::from_utf8_lossy(&v).to_string())
             .map_err(other_io_err)?;
 
@@ -282,7 +282,7 @@ impl KeyStoreT for Keystore {
                 io::ErrorKind::AlreadyExists,
                 format!(
                     "this keystore already exist: name:{}, filename:{}",
-                    name, filename
+                    key, filename
                 ),
             ));
         }
@@ -290,8 +290,8 @@ impl KeyStoreT for Keystore {
         fs::write(path.as_path(), v)
     }
 
-    fn delete(&mut self, name: String) -> Result<(), Self::Error> {
-        let filename = base32_decode(name.as_bytes())
+    fn delete<K: AsRef<str>>(&mut self, key: K) -> Result<(), Self::Error> {
+        let filename = base32_decode(key.as_ref())
             .map(|v| String::from_utf8_lossy(&v).to_string())
             .map_err(other_io_err)?;
 
