@@ -3,7 +3,6 @@ mod error;
 mod init;
 mod params;
 mod service;
-mod util;
 
 use std::io;
 use structopt::StructOpt;
@@ -17,6 +16,7 @@ use crate::commands::{Command, RunCommand, SubCommand};
 use error::*;
 
 use log::{error, info};
+use utils::native_log;
 
 const METADATA_SPACE: &'static str = "/metadata";
 const BLOCK_SPACE: &'static str = "/block";
@@ -44,7 +44,7 @@ fn main() {
     }
 
     // init log
-    util::init_logger(opt.log.as_ref().map(|v| v.as_ref()).unwrap_or(""));
+    native_log::init_logger(opt.log.as_ref().map(|v| v.as_ref()).unwrap_or(""));
 
     match opt.cmd {
         SubCommand::Run(_) | SubCommand::Init(_) => {

@@ -6,6 +6,8 @@ use commands::{Command, SubCommand};
 use log::info;
 use structopt::StructOpt;
 use worker::Worker;
+use api::{ CommonApi, HttpClient };
+use utils::native_log;
 
 #[allow(clippy::large_enum_variant)]
 pub enum TaskType {
@@ -24,9 +26,13 @@ pub struct Limits {
 fn main() {
     info!("seal-worker");
     let opt = Command::from_args();
+    native_log::init_logger(opt.log.as_ref().map(|v| v.as_ref()).unwrap_or(""));
     match opt.cmd {
         SubCommand::Run(com) => {
             info!("{:?}", com);
+            let storage_api = HttpClient::new("http://127.0.0.1:1234/rpc/v0");
+            let version = async_std::task::block_on(async { storage_api.version().await.unwrap() });
+            info!("version:{:?}", version);
         }
         _ => info!("{:?}", opt.cmd),
     }

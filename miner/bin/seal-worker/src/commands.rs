@@ -14,6 +14,8 @@ pub struct Command {
         default_value = "https://proof-parameters.s3.cn-south-1.jdcloud-oss.com/ipfs/"
     )]
     pub ipfs_gateway: String,
+    #[structopt(short, long, value_name = "LOG_PATTERN")]
+    pub log: Option<String>,
     /// Path of fetch params
     #[structopt(long, default_value = "/var/tmp/filecoin-proof-parameters/")]
     pub params_path: String,

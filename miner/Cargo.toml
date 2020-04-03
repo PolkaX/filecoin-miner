@@ -12,6 +12,7 @@ members = [
     "node/utils",
     "node/service",
     "node/paramfetch",
+    "common/utils",
 ]
 
 [replace]
