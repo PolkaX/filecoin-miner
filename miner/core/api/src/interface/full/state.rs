@@ -1,0 +1,435 @@
+// Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
+
+use std::collections::HashMap;
+
+use async_trait::async_trait;
+use libp2p_core::PeerId;
+use serde::{Deserialize, Serialize};
+
+use cid::{ipld_dag_json as cid_json, Cid};
+use plum_address::{address_json, Address};
+use plum_bigint::{bigint_json, BigInt};
+use plum_block::BlockMsg;
+use plum_message::{
+    message_receipt_json, unsigned_message_json, MessageReceipt, SignedMessage, UnsignedMessage,
+};
+use plum_ticket::{epost_proof_json, ticket_json, EPostProof, Ticket};
+use plum_tipset::{tipset_json, tipset_key_json, Tipset, TipsetKey};
+use plum_types::actor::Actor;
+
+use crate::client::RpcClient;
+use crate::errors::Result;
+
+///
+#[async_trait]
+pub trait StateApi: RpcClient {
+    /*
+    /// if tipset is nil, we'll use heaviest
+    async fn state_call(&self, msg: &UnsignedMessage, key: &TipsetKey) -> Result<InvocResult>;
+    ///
+    async fn state_replay(&self, key: &TipsetKey, cid: &Cid) -> Result<InvocResult>;
+    */
+    ///
+    async fn state_get_actor(&self, addr: &Address, key: &TipsetKey) -> Result<Actor> {
+        let actor: crate::helpers::Actor = self
+            .request(
+                "StateGetActor",
+                vec![
+                    crate::helpers::serialize_with(address_json::serialize, addr),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                ],
+            )
+            .await?;
+        Ok(actor.0)
+    }
+    /*
+    ///
+    fn state_read_state(&self, actor: &Actor, key: &TipsetKey) -> Result<ActorState>;
+    */
+    ///
+    async fn state_list_messages(
+        &self,
+        msg: &UnsignedMessage,
+        key: &TipsetKey,
+        height: u64,
+    ) -> Result<Vec<Cid>> {
+        let cids: Vec<crate::helpers::Cid> = self
+            .request(
+                "StateListMessages",
+                vec![
+                    crate::helpers::serialize_with(unsigned_message_json::serialize, msg),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                    crate::helpers::serialize(&height),
+                ],
+            )
+            .await?;
+        Ok(cids.into_iter().map(|cid| cid.0).collect())
+    }
+
+    ///
+    async fn state_miner_sectors(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<Vec<ChainSectorInfo>> {
+        let info: Vec<ChainSectorInfoHelper> = self
+            .request(
+                "StateMinerSectors",
+                vec![
+                    crate::helpers::serialize_with(address_json::serialize, addr),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                ],
+            )
+            .await?;
+        Ok(info.into_iter().map(Into::into).collect())
+    }
+    ///
+    async fn state_miner_proving_set(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<Vec<ChainSectorInfo>> {
+        let info: Vec<ChainSectorInfoHelper> = self
+            .request(
+                "StateMinerProvingSet",
+                vec![
+                    crate::helpers::serialize_with(address_json::serialize, addr),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                ],
+            )
+            .await?;
+        Ok(info.into_iter().map(Into::into).collect())
+    }
+    ///
+    async fn state_miner_power(&self, addr: &Address, key: &TipsetKey) -> Result<MinerPower> {
+        self.request(
+            "StateMinerPower",
+            vec![
+                crate::helpers::serialize_with(address_json::serialize, addr),
+                crate::helpers::serialize_with(tipset_key_json::serialize, key),
+            ],
+        )
+        .await
+    }
+    ///
+    async fn state_miner_worker(&self, addr: &Address, key: &TipsetKey) -> Result<Address> {
+        let address: crate::helpers::Address = self
+            .request(
+                "StateMinerWorker",
+                vec![
+                    crate::helpers::serialize_with(address_json::serialize, addr),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                ],
+            )
+            .await?;
+        Ok(address.0)
+    }
+    ///
+    async fn state_miner_peer_id(&self, addr: &Address, key: &TipsetKey) -> Result<PeerId> {
+        let peer_id: crate::helpers::PeerId = self
+            .request(
+                "StateMinerPeerID",
+                vec![
+                    crate::helpers::serialize_with(address_json::serialize, addr),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                ],
+            )
+            .await?;
+        Ok(peer_id.0)
+    }
+    ///
+    async fn state_miner_election_period_start(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<u64> {
+        self.request(
+            "StateMinerElectionPeriodStart",
+            vec![
+                crate::helpers::serialize_with(address_json::serialize, addr),
+                crate::helpers::serialize_with(tipset_key_json::serialize, key),
+            ],
+        )
+        .await
+    }
+    ///
+    async fn state_miner_sector_size(&self, addr: &Address, key: &TipsetKey) -> Result<u64> {
+        self.request(
+            "StateMinerSectorSize",
+            vec![
+                crate::helpers::serialize_with(address_json::serialize, addr),
+                crate::helpers::serialize_with(tipset_key_json::serialize, key),
+            ],
+        )
+        .await
+    }
+    ///
+    async fn state_miner_faults(&self, addr: &Address, key: &TipsetKey) -> Result<Vec<u64>> {
+        self.request(
+            "StateMinerFaults",
+            vec![
+                crate::helpers::serialize_with(address_json::serialize, addr),
+                crate::helpers::serialize_with(tipset_key_json::serialize, key),
+            ],
+        )
+        .await
+    }
+    ///
+    async fn state_pledge_collateral(&self, key: &TipsetKey) -> Result<BigInt> {
+        let bigint: crate::helpers::BigInt = self
+            .request(
+                "StatePledgeCollateral",
+                vec![crate::helpers::serialize_with(
+                    tipset_key_json::serialize,
+                    key,
+                )],
+            )
+            .await?;
+        Ok(bigint.0)
+    }
+    ///
+    async fn state_wait_msg(&self, cid: &Cid) -> Result<MsgWait> {
+        self.request(
+            "StateWaitMsg",
+            vec![crate::helpers::serialize_with(cid_json::serialize, cid)],
+        )
+        .await
+    }
+    ///
+    async fn state_list_miners(&self, key: &TipsetKey) -> Result<Vec<Address>> {
+        self.request(
+            "StateListMiners",
+            vec![crate::helpers::serialize_with(
+                tipset_key_json::serialize,
+                key,
+            )],
+        )
+        .await
+    }
+    ///
+    async fn state_list_actors(&self, key: &TipsetKey) -> Result<Vec<Address>> {
+        self.request(
+            "StateListActors",
+            vec![crate::helpers::serialize_with(
+                tipset_key_json::serialize,
+                key,
+            )],
+        )
+        .await
+    }
+
+    /*
+    ///
+    async fn state_market_balance(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<actors::StorageParticipantBalance>;
+    ///
+    async fn state_market_participants(
+        &self,
+        key: &TipsetKey,
+    ) -> Result<HashMap<String, actors::StorageParticipantBalance>>;
+    ///
+    async fn state_market_deals(&self, key: &TipsetKey) -> Result<HashMap<String, actors::OnChainDeal>>;
+    ///
+    async fn state_market_storage_deal(&self, deal_id: u64, key: &TipsetKey) -> Result<actors::OnChainDeal>;
+    */
+    ///
+    async fn state_lookup_id(&self, addr: &Address, key: &TipsetKey) -> Result<Address> {
+        let address: crate::helpers::Address = self
+            .request(
+                "StateLookupID",
+                vec![
+                    crate::helpers::serialize_with(address_json::serialize, addr),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                ],
+            )
+            .await?;
+        Ok(address.0)
+    }
+    ///
+    async fn state_changed_actors(&self, old: &Cid, new: &Cid) -> Result<HashMap<String, Actor>> {
+        let map: HashMap<String, crate::helpers::Actor> = self
+            .request(
+                "StateChangedActors",
+                vec![
+                    crate::helpers::serialize_with(cid_json::serialize, old),
+                    crate::helpers::serialize_with(cid_json::serialize, new),
+                ],
+            )
+            .await?;
+        Ok(map.into_iter().map(|(k, v)| (k, v.0)).collect())
+    }
+    ///
+    async fn state_get_receipt(&self, cid: &Cid, key: &TipsetKey) -> Result<MessageReceipt> {
+        let msg_receipt: crate::helpers::MessageReceipt = self
+            .request(
+                "StateGetReceipt",
+                vec![
+                    crate::helpers::serialize_with(cid_json::serialize, cid),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                ],
+            )
+            .await?;
+        Ok(msg_receipt.0)
+    }
+    ///
+    async fn state_miner_sector_count(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<MinerSectors> {
+        self.request(
+            "StateMinerSectorCount",
+            vec![
+                crate::helpers::serialize_with(address_json::serialize, addr),
+                crate::helpers::serialize_with(tipset_key_json::serialize, key),
+            ],
+        )
+        .await
+    }
+    ///
+    async fn state_compute(
+        &self,
+        height: u64,
+        msgs: &[UnsignedMessage],
+        key: &TipsetKey,
+    ) -> Result<Cid> {
+        let msgs = msgs
+            .iter()
+            .cloned()
+            .map(crate::helpers::UnsignedMessage)
+            .collect::<Vec<_>>();
+        let cid: crate::helpers::Cid = self
+            .request(
+                "StateCompute",
+                vec![
+                    crate::helpers::serialize(&height),
+                    crate::helpers::serialize(&msgs),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                ],
+            )
+            .await?;
+        Ok(cid.0)
+    }
+
+    ///
+    async fn msig_get_available_balance(&self, addr: &Address, key: &TipsetKey) -> Result<BigInt> {
+        let bigint: crate::helpers::BigInt = self
+            .request(
+                "MsigGetAvailableBalance",
+                vec![
+                    crate::helpers::serialize_with(address_json::serialize, addr),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
+                ],
+            )
+            .await?;
+        Ok(bigint.0)
+    }
+
+    /// This is on StateAPI because miner.Miner requires this, and MinerAPI requires miner.Miner
+    async fn miner_create_block(
+        &self,
+        addr: &Address,
+        parent_key: &TipsetKey,
+        ticket: &Ticket,
+        proof: &EPostProof,
+        msgs: &[SignedMessage],
+        height: u64,
+        ts: u64,
+    ) -> Result<BlockMsg> {
+        let msgs = msgs
+            .iter()
+            .cloned()
+            .map(crate::helpers::SignedMessage)
+            .collect::<Vec<_>>();
+        let block_msg: crate::helpers::BlockMsg = self
+            .request(
+                "StateMinerFaults",
+                vec![
+                    crate::helpers::serialize_with(address_json::serialize, addr),
+                    crate::helpers::serialize_with(tipset_key_json::serialize, parent_key),
+                    crate::helpers::serialize_with(ticket_json::serialize, ticket),
+                    crate::helpers::serialize_with(epost_proof_json::serialize, proof),
+                    crate::helpers::serialize(&msgs),
+                    crate::helpers::serialize(&height),
+                    crate::helpers::serialize(&ts),
+                ],
+            )
+            .await?;
+        Ok(block_msg.0)
+    }
+}
+
+#[derive(Eq, PartialEq, Copy, Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct MinerSectors {
+    pub pset: u64,
+    pub sset: u64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct MsgWait {
+    #[serde(with = "message_receipt_json")]
+    pub receipt: MessageReceipt,
+    #[serde(with = "tipset_json")]
+    #[serde(rename = "TipSet")]
+    pub tipset: Tipset,
+}
+
+#[derive(Clone, Debug)]
+pub struct ChainSectorInfo {
+    pub sector_id: u64,
+    pub comm_d: Vec<u8>,
+    pub comm_r: Vec<u8>,
+}
+
+impl From<ChainSectorInfoHelper> for ChainSectorInfo {
+    fn from(helper: ChainSectorInfoHelper) -> Self {
+        let comm_d = base64::decode(helper.comm_d).unwrap();
+        let comm_r = base64::decode(helper.comm_r).unwrap();
+        Self {
+            sector_id: helper.sector_id,
+            comm_d,
+            comm_r,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+struct ChainSectorInfoHelper {
+    #[serde(rename = "SectorID")]
+    sector_id: u64,
+    comm_d: String,
+    comm_r: String,
+}
+
+/*
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ActorState {
+    pub balance: BigInt,
+    // pub state: interface{},
+}
+*/
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct MinerPower {
+    #[serde(with = "bigint_json")]
+    pub miner_power: BigInt,
+    #[serde(with = "bigint_json")]
+    pub total_power: BigInt,
+}
+
+/*
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct InvocResult {
+    pub msg: UnsignedMessage,
+    pub msg_rct: MessageReceipt,
+    pub internal_executions: Vec<vm::ExecutionResult>,
+    pub error: String,
+}
+*/

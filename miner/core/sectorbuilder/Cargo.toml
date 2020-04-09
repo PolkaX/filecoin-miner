@@ -24,3 +24,4 @@ datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-
 # plum
 plum_address = { path = "../../../vendor/plum/primitives/address" }
 plum_actor = { path = "../../../vendor/plum/chain/actor" }
+plum_types = { path = "../../../vendor/plum/primitives/types" }

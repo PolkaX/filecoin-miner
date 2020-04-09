@@ -270,7 +270,7 @@ impl KeyStoreT for Keystore {
         Ok(Some(serde_json::from_slice(&v).map_err(other_io_err)?))
     }
 
-fn put(&mut self, key: String, info: KeyInfo) -> Result<(), Self::Error> {
+    fn put(&mut self, key: String, info: KeyInfo) -> Result<(), Self::Error> {
         let filename = base32_decode(key.as_bytes())
             .map(|v| String::from_utf8_lossy(&v).to_string())
             .map_err(other_io_err)?;

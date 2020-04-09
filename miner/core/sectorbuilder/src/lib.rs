@@ -13,8 +13,8 @@ use filecoin_proofs_api::{
 
 use datastore::Batching;
 
-use plum_actor::abi::sector::SectorSize;
 use plum_address::Address;
+use plum_types::SectorSize;
 
 pub use self::types::Config;
 pub use filecoin_proofs_api::fr32;

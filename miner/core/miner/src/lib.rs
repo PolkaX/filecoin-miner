@@ -18,7 +18,7 @@ use plum_message::SignedMessage;
 use plum_ticket::{EPostProof, Ticket};
 use plum_tipset::Tipset;
 
-use api::FullNode;
+use api::FullNodeApi;
 use gen::ElectionPoStProver;
 
 pub const BLOCK_DELAY: u64 = 45;
@@ -38,6 +38,8 @@ pub enum Error {
     EmptyProofInput,
     #[error("Tipset error {0}")]
     TipsetError(#[from] plum_tipset::TipsetError),
+    #[error("{0}")]
+    ApiError(#[from] api::ApiError),
     #[error("anyhow error {0}")]
     AnyhowError(#[from] anyhow::Error),
     #[error("other error: {0}")]
@@ -59,7 +61,7 @@ impl MiningBase {
     }
 }
 
-pub struct Miner<Api: FullNode, E: ElectionPoStProver> {
+pub struct Miner<Api: FullNodeApi + Sync, E: ElectionPoStProver> {
     api: Api,
     epp: E,
     addresses: Vec<Address>,
@@ -114,7 +116,7 @@ fn sleep(sec: u64) {
     thread::sleep(Duration::from_secs(sec));
 }
 
-impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
+impl<Api: FullNodeApi + Sync, E: ElectionPoStProver> Miner<Api, E> {
     pub fn register(&mut self) {}
 
     pub fn unregister(&mut self) {}
@@ -123,15 +125,15 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
     /// update last_work when the tipset of chain head is heavier.
     ///
     /// TODO: use self.last_work directly as we actually have ensured it's the best work.
-    fn get_best_mining_candidate(&mut self) -> Result<MiningBase> {
-        let best_ts = self.api.chain_head()?;
+    async fn get_best_mining_candidate(&mut self) -> Result<MiningBase> {
+        let best_ts = self.api.chain_head().await?;
 
         if let Some(last_work) = &self.last_work {
-            if last_work.ts == *best_ts {
+            if last_work.ts == best_ts {
                 return Ok(last_work.clone());
             }
-            let best_ts_weight = self.api.chain_tip_set_weight(&best_ts)?;
-            let last_ts_weight = self.api.chain_tip_set_weight(&last_work.ts)?;
+            let best_ts_weight = self.api.chain_tipset_weight(best_ts.key()).await?;
+            let last_ts_weight = self.api.chain_tipset_weight(last_work.ts.key()).await?;
             if best_ts_weight < last_ts_weight {
                 return Ok(last_work.clone());
             }
@@ -151,7 +153,7 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
         Ok(())
     }
 
-    fn create_block(
+    async fn create_block(
         &self,
         base: &MiningBase,
         addr: &Address,
@@ -173,17 +175,19 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
 
         let nheight = base.ts.height() + base.null_rounds + 1;
 
-        self.api
-            .miner_create_block(&addr, &base.ts, ticket, proof, msgs, nheight, uts)
-            .map_err(Into::into)
+        Ok(self
+            .api
+            .miner_create_block(&addr, base.ts.key(), ticket, proof, &msgs, nheight, uts)
+            .await?)
     }
 
-    fn has_power(&self, addr: &Address, ts: &Tipset) -> Result<bool> {
+    async fn has_power(&self, addr: &Address, ts: &Tipset) -> Result<bool> {
         let power = self
             .api
-            .state_miner_power(addr, ts)
+            .state_miner_power(addr, ts.key())
+            .await
             .map_err(|_| Error::MaybeSlashed(addr.clone()))?;
-        return Ok(power.miner_power > 0.into());
+        Ok(power.miner_power > 0.into())
     }
 
     fn get_miner_worker(&self, addr: &Address, ts: Option<&Tipset>) -> Result<Address> {
@@ -207,13 +211,13 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
         Ok(Ticket { vrf_proof: vrf_out })
     }
 
-    fn mine_one(&self, addr: &Address, base: &mut MiningBase) -> Result<BlockMsg> {
+    async fn mine_one(&self, addr: &Address, base: &mut MiningBase) -> Result<BlockMsg> {
         debug!("attempting to mine a block, tipset: {:?}", base.ts.cids());
 
         let start = Instant::now();
 
         // slashed or just have no power yet.
-        if !self.has_power(addr, &base.ts)? {
+        if !self.has_power(addr, &base.ts).await? {
             base.null_rounds += 1;
             return Err(Error::NoMiningPower(addr.clone()));
         }
@@ -241,11 +245,13 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
         let proof_in = gen::ProofInput::default();
 
         // get pending message early.
-        let pending = self.api.mpool_pending(&base.ts)?;
+        let pending = self.api.mpool_pending(base.ts.key()).await?;
 
         let proof = gen::compute_proof(&self.epp, &proof_in)?;
 
-        let b = self.create_block(base, addr, &ticket, &proof, pending)?;
+        let b = self
+            .create_block(base, addr, &ticket, &proof, pending)
+            .await?;
 
         let elapsed = start.elapsed().as_secs();
 
@@ -263,13 +269,13 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
         Ok(b)
     }
 
-    fn mine(&mut self) -> Result<()> {
+    async fn mine(&mut self) -> Result<()> {
         let mut last_base = MiningBase::new(Tipset::new(vec![dummy_block_header(dummy_cid())])?);
 
         loop {
             // TODO: handle stop singal?
 
-            let prebase = match self.get_best_mining_candidate() {
+            let prebase = match self.get_best_mining_candidate().await {
                 Ok(x) => x,
                 Err(err) => {
                     error!("failed to get best mining candidate: {:?}", err);
@@ -281,7 +287,7 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
             // Wait until propagation delay period after block we plan to mine on.
             wait_until(prebase.ts.min_timestamp() + PROPAGATION_DELAY);
 
-            let mut base = match self.get_best_mining_candidate() {
+            let mut base = match self.get_best_mining_candidate().await {
                 Ok(x) => x,
                 Err(err) => {
                     error!("failed to get best mining candidate: {:?}", err);
@@ -305,7 +311,7 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
 
             // TODO: handle addresses in multiple threads?
             for addr in self.addresses.iter() {
-                match self.mine_one(addr, &mut base) {
+                match self.mine_one(addr, &mut base).await {
                     Ok(blk) => blks.push(blk),
                     Err(err) => {
                         error!("mining block miner for {} failed: {:?}", addr, err);
@@ -362,7 +368,7 @@ impl<Api: FullNode, E: ElectionPoStProver> Miner<Api, E> {
                             .put(blk.header.height, vec![blk.header.miner.clone()]);
                     }
 
-                    if let Err(err) = self.api.sync_submit_block(blk) {
+                    if let Err(err) = self.api.sync_submit_block(&blk).await {
                         error!("failed to submit newly mined block: {:?}", err);
                     }
                 }

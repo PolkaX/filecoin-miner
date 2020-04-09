@@ -3,25 +3,26 @@
 use cid::Cid;
 
 use plum_actor::abi::{piece, sector};
+use plum_types::SectorNumber;
 
 pub trait Interface {
     fn add_piece(
         &self,
         size: piece::UnpaddedPieceSize,
-        number: sector::SectorNumber,
+        number: SectorNumber,
         piece_size: &[piece::UnpaddedPieceSize],
     ) -> Result<piece::PieceInfo, ()>;
 
     fn seal_pre_commit(
         &self,
-        number: sector::SectorNumber,
+        number: SectorNumber,
         ticket: sector::Randomness,
         pieces: piece::PieceInfo,
     ) -> Result<(Cid, Cid), ()>;
 
     fn seal_commit(
         &self,
-        number: sector::SectorNumber,
+        number: SectorNumber,
         ticket: sector::Randomness,
         seed: sector::Randomness,
         pieces: &[piece::PieceInfo],
@@ -35,5 +36,5 @@ pub trait Interface {
         winners: &[sector::PoStCandidate],
     ) -> Result<sector::PoStProof, ()>;
 
-    fn finalize_sector(&self, number: sector::SectorNumber);
+    fn finalize_sector(&self, number: SectorNumber);
 }
