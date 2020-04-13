@@ -1,5 +1,6 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
+use async_std::task::block_on;
 use async_trait::async_trait;
 use jsonrpsee::client::Subscription;
 use serde::{Deserialize, Serialize};
@@ -179,6 +180,94 @@ pub trait ChainApi: RpcClient {
     async fn chain_get_path(&self, from: &TipsetKey, to: &TipsetKey) -> Result<store.HeadChange>;
     ///
     async fn chain_export(&self, key: &TipsetKey) -> Result<Receiver<Vec<u8>>>;
+    */
+}
+
+pub trait SyncChainApi: ChainApi {
+    /// ChainNotify returns channel with chain head updates
+    /// First message is guaranteed to be of len == 1, and type == 'current'
+    fn chain_notify_sync(&self) -> Result<Subscription<HeadChange>> {
+        block_on(async { ChainApi::chain_notify(self).await })
+    }
+
+    ///
+    fn chain_head_sync(&self) -> Result<Tipset> {
+        block_on(async { ChainApi::chain_head(self).await })
+    }
+
+    ///
+    fn chain_get_randomness_sync(&self, key: &TipsetKey, round: i64) -> Result<Vec<u8>> {
+        block_on(async { ChainApi::chain_get_randomness(self, key, round).await })
+    }
+
+    ///
+    fn chain_get_block_sync(&self, cid: &Cid) -> Result<BlockHeader> {
+        block_on(async { ChainApi::chain_get_block(self, cid).await })
+    }
+
+    ///
+    fn chain_get_tipset_sync(&self, key: &TipsetKey) -> Result<Tipset> {
+        block_on(async { ChainApi::chain_get_tipset(self, key).await })
+    }
+
+    ///
+    fn chain_get_block_messages_sync(&self, cid: &Cid) -> Result<BlockMessages> {
+        block_on(async { ChainApi::chain_get_block_messages(self, cid).await })
+    }
+
+    ///
+    fn chain_get_parent_receipts_sync(&self, cid: &Cid) -> Result<MessageReceipt> {
+        block_on(async { ChainApi::chain_get_parent_receipts(self, cid).await })
+    }
+
+    ///
+    fn chain_get_parent_messages_sync(&self, cid: &Cid) -> Result<Vec<ParentMessage>> {
+        block_on(async { ChainApi::chain_get_parent_messages(self, cid).await })
+    }
+
+    ///
+    fn chain_get_tipset_by_height_sync(&self, height: u64, key: &TipsetKey) -> Result<Tipset> {
+        block_on(async { ChainApi::chain_get_tipset_by_height(self, height, key).await })
+    }
+
+    ///
+    fn chain_read_obj_sync(&self, cid: &Cid) -> Result<Vec<u8>> {
+        block_on(async { ChainApi::chain_read_obj(self, cid).await })
+    }
+
+    ///
+    fn chain_has_obj_sync(&self, cid: &Cid) -> Result<bool> {
+        block_on(async { ChainApi::chain_has_obj(self, cid).await })
+    }
+
+    ///
+    fn chain_set_head_sync(&self, key: &TipsetKey) -> Result<()> {
+        block_on(async { ChainApi::chain_set_head(self, key).await })
+    }
+
+    ///
+    fn chain_get_genesis_sync(&self) -> Result<Tipset> {
+        block_on(async { ChainApi::chain_get_genesis(self).await })
+    }
+
+    ///
+    fn chain_tipset_weight_sync(&self, key: &TipsetKey) -> Result<BigInt> {
+        block_on(async { ChainApi::chain_tipset_weight(self, key).await })
+    }
+
+    /*
+    ///
+    fn chain_get_node_sync(&self, path: &str) -> Result<Box<dyn Node>>;
+    */
+    ///
+    fn chain_get_message_sync(&self, cid: &Cid) -> Result<UnsignedMessage> {
+        block_on(async { ChainApi::chain_get_message(self, cid).await })
+    }
+    /*
+    ///
+    fn chain_get_path_sync(&self, from: &TipsetKey, to: &TipsetKey) -> Result<store.HeadChange>;
+    ///
+    fn chain_export_sync(&self, key: &TipsetKey) -> Result<Receiver<Vec<u8>>>;
     */
 }
 

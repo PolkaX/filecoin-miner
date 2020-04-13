@@ -5,6 +5,7 @@ pub use self::helpers::*;
 
 use std::collections::HashMap;
 
+use async_std::task::block_on;
 use async_trait::async_trait;
 
 use plum_address::{address_json, Address};
@@ -12,6 +13,7 @@ use plum_address::{address_json, Address};
 use crate::client::RpcClient;
 use crate::errors::Result;
 
+/// The StorageMiner API Interface
 #[async_trait]
 pub trait StorageMinerApi: RpcClient {
     ///
@@ -68,5 +70,49 @@ pub trait StorageMinerApi: RpcClient {
     async fn worker_queue(&self, cfg: sectorbuilder::WorkerCfg) -> Result<<-chan sectorbuilder::WorkerTask>;
     ///
     async fn worker_done(&self, task: u64, res: sectorbuilder::SealRes) -> Result<()>;
+    */
+}
+
+/// The SyncStorageMiner API Interface
+pub trait SyncStorageMinerApi: StorageMinerApi {
+    ///
+    fn actor_address_sync(&self) -> Result<Address> {
+        block_on(async { StorageMinerApi::actor_address(self).await })
+    }
+    ///
+    fn actor_sector_size_sync(&self, addr: &Address) -> Result<u64> {
+        block_on(async { StorageMinerApi::actor_sector_size(self, addr).await })
+    }
+
+    // Temp api for testing
+    ///
+    fn pledge_sector_sync(&self) -> Result<()> {
+        block_on(async { StorageMinerApi::pledge_sector(self).await })
+    }
+
+    /*
+    /// Get the status of a given sector by ID
+    fn sector_status_sync(&self, sector_id: u64) -> Result<SectorInfo>;
+    */
+    /// List all staged sectors
+    fn sectors_list_sync(&self) -> Result<Vec<u64>> {
+        block_on(async { StorageMinerApi::sectors_list(self).await })
+    }
+    ///
+    fn sectors_refs_sync(&self) -> Result<HashMap<String, Vec<SealedRef>>> {
+        block_on(async { StorageMinerApi::sectors_refs(self).await })
+    }
+    ///
+    fn sectors_update_sync(&self, sector_id: u64, state: SectorState) -> Result<()> {
+        block_on(async { StorageMinerApi::sectors_update(self, sector_id, state).await })
+    }
+
+    /*
+    ///
+    fn worker_stats_sync(&self) -> Result<sectorbuilder::WorkerStats>;
+    /// WorkerQueue registers a remote worker
+    fn worker_queue_sync(&self, cfg: sectorbuilder::WorkerCfg) -> Result<<-chan sectorbuilder::WorkerTask>;
+    ///
+    fn worker_done_sync(&self, task: u64, res: sectorbuilder::SealRes) -> Result<()>;
     */
 }

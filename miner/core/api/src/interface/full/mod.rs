@@ -27,6 +27,18 @@ pub trait FullNodeApi:
 {
 }
 
+pub trait SyncFullNodeApi:
+    SyncSyncApi
+    + SyncWalletApi
+    + SyncStateApi
+    + SyncMpoolApi
+    + SyncMarketApi
+    + SyncChainApi
+    + SyncPaychApi
+    + SyncClientApi
+{
+}
+
 // The priority of implementation: (1 => 2 => 3 => 4)
 // 1. Common, Sync, Wallet
 // 2. State, Mpool, Market, Chain

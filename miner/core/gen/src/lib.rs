@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 
 use anyhow::{anyhow, Result};
-use api::FullNodeApi;
+use api::SyncFullNodeApi;
 use byteorder::{LittleEndian, WriteBytesExt};
 use paired::bls12_381::Bls12;
 use sectorbuilder::EPostCandidate;
@@ -116,7 +116,7 @@ fn is_ticket_winner(partial_ticket: &[u8], ssizeI: u64, snum: u64, totpow: &BigI
     true
 }
 
-pub fn is_round_winner<A: FullNodeApi, E: ElectionPoStProver>(
+pub fn is_round_winner<A: SyncFullNodeApi, E: ElectionPoStProver>(
     ts: &Tipset,
     round: u64,
     miner: &Address,

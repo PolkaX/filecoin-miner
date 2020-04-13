@@ -1,5 +1,6 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
+use async_std::task::block_on;
 use async_trait::async_trait;
 // use serde::{de, ser, Deserialize, Serialize};
 
@@ -70,6 +71,29 @@ pub trait MpoolApi: RpcClient {
     /*
     ///
     async fn mpool_sub(&self) -> Result<Receiver<MpoolUpdate>>;
+    */
+}
+
+pub trait SyncMpoolApi: MpoolApi {
+    ///
+    fn mpool_pending_sync(&self, key: &TipsetKey) -> Result<Vec<SignedMessage>> {
+        block_on(async { MpoolApi::mpool_pending(self, key).await })
+    }
+    ///
+    fn mpool_push_sync(&self, signed_msg: &SignedMessage) -> Result<Cid> {
+        block_on(async { MpoolApi::mpool_push(self, signed_msg).await })
+    }
+    ///
+    fn mpool_push_message_sync(&self, msg: &UnsignedMessage) -> Result<SignedMessage> {
+        block_on(async { MpoolApi::mpool_push_message(self, msg).await })
+    }
+    ///
+    fn mpool_get_nonce_sync(&self, addr: &Address) -> Result<u64> {
+        block_on(async { MpoolApi::mpool_get_nonce(self, addr).await })
+    }
+    /*
+    ///
+    fn mpool_sub_sync(&self) -> Result<Receiver<MpoolUpdate>>;
     */
 }
 

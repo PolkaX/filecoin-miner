@@ -2,6 +2,7 @@
 
 use std::time::Duration;
 
+use async_std::task::block_on;
 use async_trait::async_trait;
 use libp2p_core::PeerId;
 use serde::{de, ser, Deserialize, Serialize};
@@ -97,6 +98,59 @@ pub trait ClientApi: RpcClient {
 
     ///
      async fn client_list_imports(&self) -> Result<Vec<Import>>;
+    */
+}
+
+pub trait SyncClientApi: ClientApi {
+    /// ClientImport imports file under the specified path into filestore
+    fn client_import_sync(&self, path: &str) -> Result<Cid> {
+        block_on(async { ClientApi::client_import(self, path).await })
+    }
+
+    ///
+    fn client_start_deal_sync(
+        &self,
+        cid: &Cid,
+        addr: &Address,
+        miner: &Address,
+        epoch_price: &BigInt,
+        blocks_duration: u64,
+    ) -> Result<Cid> {
+        block_on(async {
+            ClientApi::client_start_deal(self, cid, addr, miner, epoch_price, blocks_duration).await
+        })
+    }
+
+    ///
+    fn client_get_deal_info_sync(&self, cid: &Cid) -> Result<DealInfo> {
+        block_on(async { ClientApi::client_get_deal_info(self, cid).await })
+    }
+
+    ///
+    fn client_list_deals_sync(&self) -> Result<Vec<DealInfo>> {
+        block_on(async { ClientApi::client_list_deals(self).await })
+    }
+
+    ///
+    fn client_has_local_sync(&self, root: &Cid) -> Result<bool> {
+        block_on(async { ClientApi::client_has_local(self, root).await })
+    }
+
+    ///
+    fn client_find_data_sync(&self, root: &Cid) -> Result<Vec<QueryOffer>> {
+        block_on(async { ClientApi::client_find_data(self, root).await })
+    }
+
+    ///
+    fn client_retrieve_sync(&self, order: &RetrievalOrder, path: &str) -> Result<()> {
+        block_on(async { ClientApi::client_retrieve(self, order, path).await })
+    }
+    /*
+    ///
+    fn client_query_ask_sync(&self, peer_id: &PeerId, miner: &Address) -> Result<SignedStorageAsk>;
+
+    ///
+     fn client_list_imports_sync(&self) -> Result<Vec<Import>>;
     */
 }
 

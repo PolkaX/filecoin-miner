@@ -1,5 +1,6 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
+use async_std::task::block_on;
 use async_trait::async_trait;
 
 use plum_address::{address_json, Address};
@@ -21,5 +22,12 @@ pub trait MarketApi: RpcClient {
             ],
         )
         .await
+    }
+}
+
+pub trait SyncMarketApi: MarketApi {
+    ///
+    fn market_ensure_available_sync(&self, addr: &Address, amt: &BigInt) -> Result<()> {
+        block_on(async { MarketApi::market_ensure_available(self, addr, amt).await })
     }
 }

@@ -1,5 +1,6 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
+use async_std::task::block_on;
 use async_trait::async_trait;
 use serde::{de, ser, Deserialize, Serialize};
 
@@ -47,6 +48,29 @@ pub trait SyncApi: RpcClient {
             vec![crate::helpers::serialize_with(cid_json::serialize, bad_cid)],
         )
         .await
+    }
+}
+
+pub trait SyncSyncApi: SyncApi {
+    ///
+    fn sync_state_sync(&self) -> Result<SyncState> {
+        block_on(async { SyncApi::sync_state(self).await })
+    }
+    ///
+    fn sync_submit_block_sync(&self, block: &BlockMsg) -> Result<()> {
+        block_on(async { SyncApi::sync_submit_block(self, block).await })
+    }
+    /*
+    ///
+    fn sync_incoming_blocks_sync(&self) -> Result<Receiver<BlockHeader>>;
+    */
+    ///
+    fn sync_mark_bad_sync(&self, bad_cid: &Cid) -> Result<()> {
+        block_on(async { SyncApi::sync_mark_bad(self, bad_cid).await })
+    }
+    ///
+    fn sync_check_bad_sync(&self, bad_cid: &Cid) -> Result<String> {
+        block_on(async { SyncApi::sync_check_bad(self, bad_cid).await })
     }
 }
 

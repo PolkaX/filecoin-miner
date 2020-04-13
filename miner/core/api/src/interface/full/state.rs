@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use async_std::task::block_on;
 use async_trait::async_trait;
 use libp2p_core::PeerId;
 use serde::{Deserialize, Serialize};
@@ -359,6 +360,162 @@ pub trait StateApi: RpcClient {
             )
             .await?;
         Ok(block_msg.0)
+    }
+}
+
+pub trait SyncStateApi: StateApi {
+    /*
+    /// if tipset is nil, we'll use heaviest
+    fn state_call_sync(&self, msg: &UnsignedMessage, key: &TipsetKey) -> Result<InvocResult>;
+    ///
+    fn state_replay_sync(&self, key: &TipsetKey, cid: &Cid) -> Result<InvocResult>;
+    */
+    ///
+    fn state_get_actor_sync(&self, addr: &Address, key: &TipsetKey) -> Result<Actor> {
+        block_on(async { StateApi::state_get_actor(self, addr, key).await })
+    }
+    /*
+    ///
+    fn state_read_state_sync(&self, actor: &Actor, key: &TipsetKey) -> Result<ActorState>;
+    */
+    ///
+    fn state_list_messages_sync(
+        &self,
+        msg: &UnsignedMessage,
+        key: &TipsetKey,
+        height: u64,
+    ) -> Result<Vec<Cid>> {
+        block_on(async { StateApi::state_list_messages(self, msg, key, height).await })
+    }
+
+    ///
+    fn state_miner_sectors_sync(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<Vec<ChainSectorInfo>> {
+        block_on(async { StateApi::state_miner_sectors(self, addr, key).await })
+    }
+    ///
+    fn state_miner_proving_set_sync(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<Vec<ChainSectorInfo>> {
+        block_on(async { StateApi::state_miner_proving_set(self, addr, key).await })
+    }
+    ///
+    fn state_miner_power_sync(&self, addr: &Address, key: &TipsetKey) -> Result<MinerPower> {
+        block_on(async { StateApi::state_miner_power(self, addr, key).await })
+    }
+    ///
+    fn state_miner_worker_sync(&self, addr: &Address, key: &TipsetKey) -> Result<Address> {
+        block_on(async { StateApi::state_miner_worker(self, addr, key).await })
+    }
+    ///
+    fn state_miner_peer_id_sync(&self, addr: &Address, key: &TipsetKey) -> Result<PeerId> {
+        block_on(async { StateApi::state_miner_peer_id(self, addr, key).await })
+    }
+    ///
+    fn state_miner_election_period_start_sync(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<u64> {
+        block_on(async { StateApi::state_miner_election_period_start(self, addr, key).await })
+    }
+    ///
+    fn state_miner_sector_size_sync(&self, addr: &Address, key: &TipsetKey) -> Result<u64> {
+        block_on(async { StateApi::state_miner_sector_size(self, addr, key).await })
+    }
+    ///
+    fn state_miner_faults_sync(&self, addr: &Address, key: &TipsetKey) -> Result<Vec<u64>> {
+        block_on(async { StateApi::state_miner_faults(self, addr, key).await })
+    }
+    ///
+    fn state_pledge_collateral_sync(&self, key: &TipsetKey) -> Result<BigInt> {
+        block_on(async { StateApi::state_pledge_collateral(self, key).await })
+    }
+    ///
+    fn state_wait_msg_sync(&self, cid: &Cid) -> Result<MsgWait> {
+        block_on(async { StateApi::state_wait_msg(self, cid).await })
+    }
+    ///
+    fn state_list_miners_sync(&self, key: &TipsetKey) -> Result<Vec<Address>> {
+        block_on(async { StateApi::state_list_miners(self, key).await })
+    }
+    ///
+    fn state_list_actors_sync(&self, key: &TipsetKey) -> Result<Vec<Address>> {
+        block_on(async { StateApi::state_list_actors(self, key).await })
+    }
+
+    /*
+    ///
+    fn state_market_balance_sync(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<actors::StorageParticipantBalance>;
+    ///
+    fn state_market_participants_sync(
+        &self,
+        key: &TipsetKey,
+    ) -> Result<HashMap<String, actors::StorageParticipantBalance>>;
+    ///
+    fn state_market_deals_sync(&self, key: &TipsetKey) -> Result<HashMap<String, actors::OnChainDeal>>;
+    ///
+    fn state_market_storage_deal_sync(&self, deal_id: u64, key: &TipsetKey) -> Result<actors::OnChainDeal>;
+    */
+    ///
+    fn state_lookup_id_sync(&self, addr: &Address, key: &TipsetKey) -> Result<Address> {
+        block_on(async { StateApi::state_lookup_id(self, addr, key).await })
+    }
+    ///
+    fn state_changed_actors_sync(&self, old: &Cid, new: &Cid) -> Result<HashMap<String, Actor>> {
+        block_on(async { StateApi::state_changed_actors(self, old, new).await })
+    }
+    ///
+    fn state_get_receipt_sync(&self, cid: &Cid, key: &TipsetKey) -> Result<MessageReceipt> {
+        block_on(async { StateApi::state_get_receipt(self, cid, key).await })
+    }
+    ///
+    fn state_miner_sector_count_sync(
+        &self,
+        addr: &Address,
+        key: &TipsetKey,
+    ) -> Result<MinerSectors> {
+        block_on(async { StateApi::state_miner_sector_count(self, addr, key).await })
+    }
+    ///
+    fn state_compute_sync(
+        &self,
+        height: u64,
+        msgs: &[UnsignedMessage],
+        key: &TipsetKey,
+    ) -> Result<Cid> {
+        block_on(async { StateApi::state_compute(self, height, msgs, key).await })
+    }
+
+    ///
+    fn msig_get_available_balance_sync(&self, addr: &Address, key: &TipsetKey) -> Result<BigInt> {
+        block_on(async { StateApi::msig_get_available_balance(self, addr, key).await })
+    }
+
+    /// This is on StateAPI because miner.Miner requires this, and MinerAPI requires miner.Miner
+    fn miner_create_block_sync(
+        &self,
+        addr: &Address,
+        parent_key: &TipsetKey,
+        ticket: &Ticket,
+        proof: &EPostProof,
+        msgs: &[SignedMessage],
+        height: u64,
+        ts: u64,
+    ) -> Result<BlockMsg> {
+        block_on(async {
+            StateApi::miner_create_block(self, addr, parent_key, ticket, proof, msgs, height, ts)
+                .await
+        })
     }
 }
 

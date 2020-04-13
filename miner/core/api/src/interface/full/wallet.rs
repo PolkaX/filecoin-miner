@@ -1,5 +1,6 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
+use async_std::task::block_on;
 use async_trait::async_trait;
 
 use plum_address::{address_json, Address};
@@ -138,5 +139,61 @@ pub trait WalletApi: RpcClient {
             )
             .await?;
         Ok(address.0)
+    }
+}
+
+pub trait SyncWalletApi: WalletApi {
+    ///
+    fn wallet_new_sync(&self, name: &str) -> Result<Address> {
+        block_on(async { WalletApi::wallet_new(self, name).await })
+    }
+    ///
+    fn wallet_has_sync(&self, addr: &Address) -> Result<bool> {
+        block_on(async { WalletApi::wallet_has(self, addr).await })
+    }
+    ///
+    fn wallet_list_sync(&self) -> Result<Vec<Address>> {
+        block_on(async { WalletApi::wallet_list(self).await })
+    }
+    ///
+    fn wallet_balance_sync(&self, addr: &Address) -> Result<BigInt> {
+        block_on(async { WalletApi::wallet_balance(self, addr).await })
+    }
+    ///
+    fn wallet_sign_sync(&self, addr: &Address, msg: &[u8]) -> Result<Signature> {
+        block_on(async { WalletApi::wallet_sign(self, addr, msg).await })
+    }
+    ///
+    fn wallet_sign_message_sync(
+        &self,
+        addr: &Address,
+        msg: &UnsignedMessage,
+    ) -> Result<SignedMessage> {
+        block_on(async { WalletApi::wallet_sign_message(self, addr, msg).await })
+    }
+    ///
+    fn wallet_verify_sync(
+        &self,
+        addr: &Address,
+        msg: &[u8],
+        signature: &Signature,
+    ) -> Result<bool> {
+        block_on(async { WalletApi::wallet_verify(self, addr, msg, signature).await })
+    }
+    ///
+    fn wallet_default_address_sync(&self) -> Result<Address> {
+        block_on(async { WalletApi::wallet_default_address(self).await })
+    }
+    ///
+    fn wallet_set_default_sync(&self, addr: &Address) -> Result<()> {
+        block_on(async { WalletApi::wallet_set_default(self, addr).await })
+    }
+    ///
+    fn wallet_export_sync(&self, addr: &Address) -> Result<KeyInfo> {
+        block_on(async { WalletApi::wallet_export(self, addr).await })
+    }
+    ///
+    fn wallet_import_sync(&self, info: &KeyInfo) -> Result<Address> {
+        block_on(async { WalletApi::wallet_import(self, info).await })
     }
 }

@@ -2,6 +2,7 @@
 
 use std::net::SocketAddr;
 
+use async_std::task::block_on;
 use async_trait::async_trait;
 use jsonrpsee::{
     client::{Client, Subscription},
@@ -15,15 +16,18 @@ use crate::client::RpcClient;
 use crate::errors::Result;
 
 ///
+#[derive(Clone)]
 pub struct WsClient {
     client: Client,
     token: Option<String>,
 }
 
 impl WsClient {
-    ///
-    pub async fn new(socket_addr: SocketAddr, url: impl AsRef<str>) -> Self {
-        let ws_transport = WsTransportClient::builder(
+    async fn new_async_transport(
+        socket_addr: SocketAddr,
+        url: impl AsRef<str>,
+    ) -> WsTransportClient {
+        WsTransportClient::builder(
             socket_addr,
             socket_addr.to_string(),
             socket_addr.ip().to_string(),
@@ -32,8 +36,12 @@ impl WsClient {
         .with_url(url.as_ref())
         .build()
         .await
-        .expect("invalid ws config");
+        .expect("invalid ws config")
+    }
 
+    ///
+    pub async fn new_async(socket_addr: SocketAddr, url: impl AsRef<str>) -> Self {
+        let ws_transport = Self::new_async_transport(socket_addr, url).await;
         let raw_client = RawClient::new(ws_transport);
         let client = Client::new(raw_client);
         Self {
@@ -43,22 +51,42 @@ impl WsClient {
     }
 
     ///
-    pub async fn new_with_token(
+    pub async fn new_async_with_token(
         socket_addr: SocketAddr,
         url: impl AsRef<str>,
         token: impl Into<String>,
     ) -> Self {
-        let ws_transport = WsTransportClient::builder(
-            socket_addr,
-            socket_addr.to_string(),
-            socket_addr.ip().to_string(),
-            Mode::Plain,
-        )
-        .with_url(url.as_ref())
-        .build()
-        .await
-        .expect("invalid ws config");
+        let ws_transport = Self::new_async_transport(socket_addr, url).await;
+        let raw_client = RawClient::new(ws_transport);
+        let client = Client::new(raw_client);
+        Self {
+            client,
+            token: Some(token.into()),
+        }
+    }
 
+    fn new_sync_transport(socket_addr: SocketAddr, url: impl AsRef<str>) -> WsTransportClient {
+        block_on(async { Self::new_async_transport(socket_addr, url).await })
+    }
+
+    ///
+    pub fn new_sync(socket_addr: SocketAddr, url: impl AsRef<str>) -> Self {
+        let ws_transport = Self::new_sync_transport(socket_addr, url);
+        let raw_client = RawClient::new(ws_transport);
+        let client = Client::new(raw_client);
+        Self {
+            client,
+            token: None,
+        }
+    }
+
+    ///
+    pub fn new_sync_with_token(
+        socket_addr: SocketAddr,
+        url: impl AsRef<str>,
+        token: impl Into<String>,
+    ) -> Self {
+        let ws_transport = Self::new_sync_transport(socket_addr, url);
         let raw_client = RawClient::new(ws_transport);
         let client = Client::new(raw_client);
         Self {
@@ -123,4 +151,17 @@ mod impls {
     impl StateApi for WsClient {}
     impl SyncApi for WsClient {}
     impl WalletApi for WsClient {}
+
+    impl SyncCommonApi for WsClient {}
+    impl SyncFullNodeApi for WsClient {}
+    impl SyncStorageMinerApi for WsClient {}
+
+    impl SyncChainApi for WsClient {}
+    impl SyncClientApi for WsClient {}
+    impl SyncMarketApi for WsClient {}
+    impl SyncMpoolApi for WsClient {}
+    impl SyncPaychApi for WsClient {}
+    impl SyncStateApi for WsClient {}
+    impl SyncSyncApi for WsClient {}
+    impl SyncWalletApi for WsClient {}
 }
