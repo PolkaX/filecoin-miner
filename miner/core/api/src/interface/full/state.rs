@@ -16,7 +16,7 @@ use plum_message::{
 };
 use plum_ticket::{epost_proof_json, ticket_json, EPostProof, Ticket};
 use plum_tipset::{tipset_json, tipset_key_json, Tipset, TipsetKey};
-use plum_types::actor::Actor;
+use plum_types::Actor;
 use plum_vm::{execution_result_json, ExecutionResult};
 
 use crate::client::RpcClient;
@@ -83,16 +83,14 @@ pub trait StateApi: RpcClient {
         addr: &Address,
         key: &TipsetKey,
     ) -> Result<Vec<ChainSectorInfo>> {
-        let info: Vec<ChainSectorInfoHelper> = self
-            .request(
-                "StateMinerSectors",
-                vec![
-                    crate::helpers::serialize_with(address_json::serialize, addr),
-                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
-                ],
-            )
-            .await?;
-        Ok(info.into_iter().map(Into::into).collect())
+        self.request(
+            "StateMinerSectors",
+            vec![
+                crate::helpers::serialize_with(address_json::serialize, addr),
+                crate::helpers::serialize_with(tipset_key_json::serialize, key),
+            ],
+        )
+        .await
     }
     ///
     async fn state_miner_proving_set(
@@ -100,16 +98,14 @@ pub trait StateApi: RpcClient {
         addr: &Address,
         key: &TipsetKey,
     ) -> Result<Vec<ChainSectorInfo>> {
-        let info: Vec<ChainSectorInfoHelper> = self
-            .request(
-                "StateMinerProvingSet",
-                vec![
-                    crate::helpers::serialize_with(address_json::serialize, addr),
-                    crate::helpers::serialize_with(tipset_key_json::serialize, key),
-                ],
-            )
-            .await?;
-        Ok(info.into_iter().map(Into::into).collect())
+        self.request(
+            "StateMinerProvingSet",
+            vec![
+                crate::helpers::serialize_with(address_json::serialize, addr),
+                crate::helpers::serialize_with(tipset_key_json::serialize, key),
+            ],
+        )
+        .await
     }
     ///
     async fn state_miner_power(&self, addr: &Address, key: &TipsetKey) -> Result<MinerPower> {
@@ -543,37 +539,20 @@ pub struct MinerSectors {
 pub struct MsgWait {
     #[serde(with = "message_receipt_json")]
     pub receipt: MessageReceipt,
-    #[serde(with = "tipset_json")]
     #[serde(rename = "TipSet")]
+    #[serde(with = "tipset_json")]
     pub tipset: Tipset,
-}
-
-#[derive(Clone, Debug)]
-pub struct ChainSectorInfo {
-    pub sector_id: u64,
-    pub comm_d: Vec<u8>,
-    pub comm_r: Vec<u8>,
-}
-
-impl From<ChainSectorInfoHelper> for ChainSectorInfo {
-    fn from(helper: ChainSectorInfoHelper) -> Self {
-        let comm_d = base64::decode(helper.comm_d).unwrap();
-        let comm_r = base64::decode(helper.comm_r).unwrap();
-        Self {
-            sector_id: helper.sector_id,
-            comm_d,
-            comm_r,
-        }
-    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct ChainSectorInfoHelper {
+pub struct ChainSectorInfo {
     #[serde(rename = "SectorID")]
-    sector_id: u64,
-    comm_d: String,
-    comm_r: String,
+    pub sector_id: u64,
+    #[serde(with = "plum_types::base64")]
+    pub comm_d: Vec<u8>,
+    #[serde(with = "plum_types::base64")]
+    pub comm_r: Vec<u8>,
 }
 
 /*
@@ -600,8 +579,7 @@ pub struct InvocResult {
     pub msg: UnsignedMessage,
     #[serde(with = "message_receipt_json")]
     pub msg_rct: MessageReceipt,
-    #[serde(serialize_with = "execution_result_json::serialize_seq")]
-    #[serde(deserialize_with = "execution_result_json::deserialize_seq")]
+    #[serde(with = "execution_result_json::vec")]
     pub internal_executions: Vec<ExecutionResult>,
     pub error: String,
 }

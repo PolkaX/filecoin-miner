@@ -191,7 +191,7 @@ pub fn compute_proof<E: ElectionPoStProver>(epp: &E, pi: &ProofInput) -> Result<
         .map(|w| {
             // TODO: sector_id uses u64 or SectorId?
             // TODO: partial is actually a fixed size array [u8; 32], not an arbitray Vec<u8>.
-            let partial = sectorbuilder::fr32::fr_into_bytes::<Bls12>(&w.partial_ticket);
+            let partial = sectorbuilder::fr32::fr_into_bytes(&w.partial_ticket);
             EPostTicket {
                 partial,
                 sector_id: w.sector_id.into(),

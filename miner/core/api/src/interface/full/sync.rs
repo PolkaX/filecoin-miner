@@ -2,7 +2,8 @@
 
 use async_std::task::block_on;
 use async_trait::async_trait;
-use serde::{de, ser, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use cid::{ipld_dag_json as cid_json, Cid};
 use plum_block::{block_msg_json, BlockMsg};
@@ -108,7 +109,7 @@ pub struct ActiveSync {
 
 ///
 #[repr(u8)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize_repr, Deserialize_repr)]
 pub enum SyncStateStage {
     ///
     StageIdle = 0,
@@ -122,30 +123,4 @@ pub enum SyncStateStage {
     StageSyncComplete = 4,
     ///
     StageSyncErrored = 5,
-}
-
-impl ser::Serialize for SyncStateStage {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: ser::Serializer,
-    {
-        (*self as u8).serialize(serializer)
-    }
-}
-
-impl<'de> de::Deserialize<'de> for SyncStateStage {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        Ok(match u8::deserialize(deserializer)? {
-            0 => SyncStateStage::StageIdle,
-            1 => SyncStateStage::StageHeaders,
-            2 => SyncStateStage::StagePersistHeaders,
-            3 => SyncStateStage::StageMessages,
-            4 => SyncStateStage::StageSyncComplete,
-            5 => SyncStateStage::StageSyncErrored,
-            i => return Err(de::Error::custom(format!("unexpect integer {}", i))),
-        })
-    }
 }

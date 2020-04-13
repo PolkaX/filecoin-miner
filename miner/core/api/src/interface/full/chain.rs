@@ -8,7 +8,9 @@ use serde::{Deserialize, Serialize};
 use cid::{ipld_dag_json as cid_json, Cid};
 use plum_bigint::BigInt;
 use plum_block::BlockHeader;
-use plum_message::{unsigned_message_json, MessageReceipt, SignedMessage, UnsignedMessage};
+use plum_message::{
+    signed_message_json, unsigned_message_json, MessageReceipt, SignedMessage, UnsignedMessage,
+};
 use plum_tipset::{tipset_json, tipset_key_json, Tipset, TipsetKey};
 
 use crate::client::RpcClient;
@@ -19,7 +21,7 @@ use crate::errors::Result;
 pub trait ChainApi: RpcClient {
     /// ChainNotify returns channel with chain head updates
     /// First message is guaranteed to be of len == 1, and type == 'current'
-    async fn chain_notify(&self) -> Result<Subscription<HeadChange>> {
+    async fn chain_notify(&self) -> Result<Subscription<Vec<HeadChange>>> {
         self.subscribe("ChainNotify", vec![]).await
     }
 
@@ -68,13 +70,11 @@ pub trait ChainApi: RpcClient {
 
     ///
     async fn chain_get_block_messages(&self, cid: &Cid) -> Result<BlockMessages> {
-        let block_msgs: BlockMessagesHelper = self
-            .request(
-                "ChainGetBlockMessages",
-                vec![crate::helpers::serialize_with(cid_json::serialize, cid)],
-            )
-            .await?;
-        Ok(block_msgs.into())
+        self.request(
+            "ChainGetBlockMessages",
+            vec![crate::helpers::serialize_with(cid_json::serialize, cid)],
+        )
+        .await
     }
 
     ///
@@ -186,7 +186,7 @@ pub trait ChainApi: RpcClient {
 pub trait SyncChainApi: ChainApi {
     /// ChainNotify returns channel with chain head updates
     /// First message is guaranteed to be of len == 1, and type == 'current'
-    fn chain_notify_sync(&self) -> Result<Subscription<HeadChange>> {
+    fn chain_notify_sync(&self) -> Result<Subscription<Vec<HeadChange>>> {
         block_on(async { ChainApi::chain_notify(self).await })
     }
 
@@ -280,42 +280,22 @@ pub enum HeadChangeType {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
 pub struct HeadChange {
-    #[serde(rename = "Type")]
-    pub ty: HeadChangeType,
-    #[serde(rename = "Val")]
+    pub r#type: HeadChangeType,
     #[serde(with = "tipset_json")]
     pub val: Tipset,
 }
 
-#[derive(Clone, Debug)]
-pub struct BlockMessages {
-    pub bls_messages: Vec<UnsignedMessage>,
-    pub secpk_messages: Vec<SignedMessage>,
-
-    pub cids: Vec<Cid>,
-}
-
-impl From<BlockMessagesHelper> for BlockMessages {
-    fn from(helper: BlockMessagesHelper) -> Self {
-        Self {
-            bls_messages: helper.bls_messages.into_iter().map(|bls| bls.0).collect(),
-            secpk_messages: helper
-                .secpk_messages
-                .into_iter()
-                .map(|secpk| secpk.0)
-                .collect(),
-            cids: helper.cids.into_iter().map(|cid| cid.0).collect(),
-        }
-    }
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct BlockMessagesHelper {
-    bls_messages: Vec<crate::helpers::UnsignedMessage>,
-    secpk_messages: Vec<crate::helpers::SignedMessage>,
-    cids: Vec<crate::helpers::Cid>,
+pub struct BlockMessages {
+    #[serde(with = "unsigned_message_json::vec")]
+    pub bls_messages: Vec<UnsignedMessage>,
+    #[serde(with = "signed_message_json::vec")]
+    pub secpk_messages: Vec<SignedMessage>,
+    #[serde(with = "cid_json::vec")]
+    pub cids: Vec<Cid>,
 }
 
 // Only For chain_get_parent_messages

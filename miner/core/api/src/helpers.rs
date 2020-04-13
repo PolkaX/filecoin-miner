@@ -101,4 +101,4 @@ pub struct Signature(#[serde(with = "plum_crypto::signature_json")] pub plum_cry
 pub struct KeyInfo(#[serde(with = "plum_wallet::key_info_json")] pub plum_wallet::KeyInfo);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Actor(#[serde(with = "plum_types::actor::json")] pub plum_types::actor::Actor);
+pub struct Actor(#[serde(with = "plum_types::actor_json")] pub plum_types::Actor);

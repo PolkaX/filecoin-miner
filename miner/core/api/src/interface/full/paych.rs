@@ -2,7 +2,8 @@
 
 use async_std::task::block_on;
 use async_trait::async_trait;
-use serde::{de, ser, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use cid::{ipld_dag_json as cid_json, Cid};
 use plum_address::{address_json, Address};
@@ -187,34 +188,11 @@ pub struct PaychStatus {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize_repr, Deserialize_repr)]
 pub enum PchDir {
     Undef = 0,
     Inbound = 1,
     Outbound = 2,
-}
-
-impl ser::Serialize for PchDir {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: ser::Serializer,
-    {
-        (*self as u8).serialize(serializer)
-    }
-}
-
-impl<'de> de::Deserialize<'de> for PchDir {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        Ok(match u8::deserialize(deserializer)? {
-            0 => PchDir::Undef,
-            1 => PchDir::Inbound,
-            2 => PchDir::Outbound,
-            i => return Err(de::Error::custom(format!("unexpect integer {}", i))),
-        })
-    }
 }
 
 /*

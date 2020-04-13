@@ -3,7 +3,8 @@
 use std::fmt;
 
 use libp2p_core::{Multiaddr, PeerId};
-use serde::{de, ser, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 /// The permission of API.
 #[derive(Eq, PartialEq, Copy, Clone, Debug, Serialize, Deserialize)]
@@ -39,7 +40,7 @@ impl fmt::Display for Permission {
 /// Connectedness signals the capacity for a connection with a given node.
 /// It is used to signal to services and other peers whether a node is reachable.
 #[repr(u8)]
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize_repr, Deserialize_repr)]
 pub enum Connectedness {
     /// NotConnected means no connection to peer, and no extra information (default)
     NotConnected = 0,
@@ -52,37 +53,13 @@ pub enum Connectedness {
     CannotConnect = 3,
 }
 
-impl ser::Serialize for Connectedness {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: ser::Serializer,
-    {
-        (*self as u8).serialize(serializer)
-    }
-}
-
-impl<'de> de::Deserialize<'de> for Connectedness {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        Ok(match u8::deserialize(deserializer)? {
-            0 => Connectedness::NotConnected,
-            1 => Connectedness::Connected,
-            2 => Connectedness::CanConnect,
-            3 => Connectedness::CannotConnect,
-            i => return Err(de::Error::custom(format!("unexpect integer {}", i))),
-        })
-    }
-}
-
 /// AddrInfo is a small struct used to pass around a peer with a set of addresses.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PeerAddrInfo {
     /// peer ID.
-    #[serde(with = "crate::helpers::peer_id")]
     #[serde(rename = "ID")]
+    #[serde(with = "crate::helpers::peer_id")]
     pub id: PeerId,
     /// A set of addresses.
     pub addrs: Vec<Multiaddr>,

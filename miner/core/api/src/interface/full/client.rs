@@ -5,7 +5,8 @@ use std::time::Duration;
 use async_std::task::block_on;
 use async_trait::async_trait;
 use libp2p_core::PeerId;
-use serde::{de, ser, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use cid::{ipld_dag_json as cid_json, Cid};
 use plum_address::{address_json, Address};
@@ -173,6 +174,7 @@ pub struct DealInfo {
     #[serde(with = "address_json")]
     pub provider: Address,
 
+    #[serde(with = "plum_types::base64")]
     pub piece_ref: Vec<u8>, // cid bytes
     pub size: u64,
 
@@ -185,7 +187,7 @@ pub struct DealInfo {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize_repr, Deserialize_repr)]
 pub enum DealStates {
     DealUnknown = 0,
     DealRejected,
@@ -195,34 +197,6 @@ pub enum DealStates {
     DealFailed,
     DealComplete,
     DealError,
-}
-
-impl ser::Serialize for DealStates {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: ser::Serializer,
-    {
-        (*self as u8).serialize(serializer)
-    }
-}
-
-impl<'de> de::Deserialize<'de> for DealStates {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        Ok(match u8::deserialize(deserializer)? {
-            0 => DealStates::DealUnknown,
-            1 => DealStates::DealRejected,
-            2 => DealStates::DealAccepted,
-            3 => DealStates::DealStaged,
-            4 => DealStates::DealSealing,
-            5 => DealStates::DealFailed,
-            6 => DealStates::DealComplete,
-            7 => DealStates::DealError,
-            i => return Err(de::Error::custom(format!("unexpect integer {}", i))),
-        })
-    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -239,8 +213,8 @@ pub struct QueryOffer {
 
     #[serde(with = "address_json")]
     pub miner: Address,
-    #[serde(with = "crate::helpers::peer_id")]
     #[serde(rename = "MinerPeerID")]
+    #[serde(with = "crate::helpers::peer_id")]
     pub miner_peer_id: PeerId,
 }
 
@@ -273,7 +247,7 @@ pub struct RetrievalOrder {
     pub client: Address,
     #[serde(with = "address_json")]
     pub miner: Address,
-    #[serde(with = "crate::helpers::peer_id")]
     #[serde(rename = "MinerPeerID")]
+    #[serde(with = "crate::helpers::peer_id")]
     pub miner_peer_id: PeerId,
 }

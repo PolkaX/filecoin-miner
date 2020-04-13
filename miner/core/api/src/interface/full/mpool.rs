@@ -2,7 +2,8 @@
 
 use async_std::task::block_on;
 use async_trait::async_trait;
-// use serde::{de, ser, Deserialize, Serialize};
+// use serde::{Deserialize, Serialize};
+// use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use cid::Cid;
 use plum_address::{address_json, Address};
@@ -98,46 +99,18 @@ pub trait SyncMpoolApi: MpoolApi {
 }
 
 /*
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
 pub struct MpoolUpdate {
-    pub ty: MpoolChange,
+    pub r#type: MpoolChange,
+    #[serde(with = "signed_message_json::vec")]
     pub message: Vec<SignedMessage>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct MpoolUpdateHelper {
-    #[serde(rename = "Type")]
-    ty: MpoolChange,
-    message: Vec<crate::helpers::SignedMessage>,
-}
-
 #[repr(u8)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize_repr, Deserialize_repr)]
 pub enum MpoolChange {
     MpoolAdd = 0,
     MpoolRemove = 1,
-}
-
-impl ser::Serialize for MpoolChange {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: ser::Serializer,
-    {
-        (*self as u8).serialize(serializer)
-    }
-}
-
-impl<'de> de::Deserialize<'de> for MpoolChange {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: de::Deserializer<'de>,
-    {
-        Ok(match u8::deserialize(deserializer)? {
-            0 => MpoolChange::MpoolAdd,
-            1 => MpoolChange::MpoolRemove,
-            i => return Err(de::Error::custom(format!("unexpect integer {}", i))),
-        })
-    }
 }
 */

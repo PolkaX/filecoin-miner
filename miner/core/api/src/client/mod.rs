@@ -40,12 +40,14 @@ fn test_async_api() {
         println!("async api - id: {:?}", id);
         let version = client.version().await.unwrap();
         println!("async api - version: {:?}", version);
+        let connectedness = client.net_connectedness(&id).await.unwrap();
+        println!("async api - net_connectedness: {:?}", connectedness);
 
         /*
-        use crate::interface::{ChainApi, HeadChange};
-        let mut chain_notify_sub: Subscription<HeadChange> = client.chain_notify().await.unwrap();
-        let head_change = chain_notify_sub.next().await;
-        println!("chain_notify: {:?}", head_change);
+        use crate::interface::ChainApi;
+        let mut chain_notify_sub = client.chain_notify().await.unwrap();
+        let head_changes = chain_notify_sub.next().await;
+        println!("chain_notify: {:?}", head_changes);
         */
     });
 }
