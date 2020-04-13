@@ -25,4 +25,5 @@ plum_message = { path = "../../../vendor/plum/primitives/message" }
 plum_ticket = { path = "../../../vendor/plum/primitives/ticket" }
 plum_tipset = { path = "../../../vendor/plum/primitives/tipset" }
 plum_types = { path = "../../../vendor/plum/primitives/types" }
+plum_vm = { path = "../../../vendor/plum/vm" }
 plum_wallet = { path = "../../../vendor/plum/wallet" }

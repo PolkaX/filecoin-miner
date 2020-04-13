@@ -131,6 +131,7 @@ dependencies = [
  "plum_ticket",
  "plum_tipset",
  "plum_types",
+ "plum_vm",
  "plum_wallet",
  "serde 1.0.104",
  "serde_json",
@@ -3663,6 +3664,14 @@ version = "0.1.0"
 dependencies = [
  "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "plum_bigint",
+ "serde 1.0.104",
+]
+
+[[package]]
+name = "plum_vm"
+version = "0.1.0"
+dependencies = [
+ "plum_message",
  "serde 1.0.104",
 ]
 

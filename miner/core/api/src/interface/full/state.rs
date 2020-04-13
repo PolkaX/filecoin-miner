@@ -17,6 +17,7 @@ use plum_message::{
 use plum_ticket::{epost_proof_json, ticket_json, EPostProof, Ticket};
 use plum_tipset::{tipset_json, tipset_key_json, Tipset, TipsetKey};
 use plum_types::actor::Actor;
+use plum_vm::{execution_result_json, ExecutionResult};
 
 use crate::client::RpcClient;
 use crate::errors::Result;
@@ -24,9 +25,18 @@ use crate::errors::Result;
 ///
 #[async_trait]
 pub trait StateApi: RpcClient {
-    /*
     /// if tipset is nil, we'll use heaviest
-    async fn state_call(&self, msg: &UnsignedMessage, key: &TipsetKey) -> Result<InvocResult>;
+    async fn state_call(&self, msg: &UnsignedMessage, key: &TipsetKey) -> Result<InvocResult> {
+        self.request(
+            "StateCall",
+            vec![
+                crate::helpers::serialize_with(unsigned_message_json::serialize, msg),
+                crate::helpers::serialize_with(tipset_key_json::serialize, key),
+            ],
+        )
+        .await
+    }
+    /*
     ///
     async fn state_replay(&self, key: &TipsetKey, cid: &Cid) -> Result<InvocResult>;
     */
@@ -364,9 +374,11 @@ pub trait StateApi: RpcClient {
 }
 
 pub trait SyncStateApi: StateApi {
-    /*
     /// if tipset is nil, we'll use heaviest
-    fn state_call_sync(&self, msg: &UnsignedMessage, key: &TipsetKey) -> Result<InvocResult>;
+    fn state_call_sync(&self, msg: &UnsignedMessage, key: &TipsetKey) -> Result<InvocResult> {
+        block_on(async { StateApi::state_call(self, msg, key).await })
+    }
+    /*
     ///
     fn state_replay_sync(&self, key: &TipsetKey, cid: &Cid) -> Result<InvocResult>;
     */
@@ -581,12 +593,15 @@ pub struct MinerPower {
     pub total_power: BigInt,
 }
 
-/*
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
 pub struct InvocResult {
+    #[serde(with = "unsigned_message_json")]
     pub msg: UnsignedMessage,
+    #[serde(with = "message_receipt_json")]
     pub msg_rct: MessageReceipt,
-    pub internal_executions: Vec<vm::ExecutionResult>,
+    #[serde(serialize_with = "execution_result_json::serialize_seq")]
+    #[serde(deserialize_with = "execution_result_json::deserialize_seq")]
+    pub internal_executions: Vec<ExecutionResult>,
     pub error: String,
 }
-*/
