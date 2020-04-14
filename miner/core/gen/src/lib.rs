@@ -7,16 +7,20 @@ use paired::bls12_381::Bls12;
 use sectorbuilder::EPostCandidate;
 
 use plum_address::{Address, Protocol};
-use plum_bigint::BigInt;
-use plum_crypto::{compute_vrf, VrfPrivateKey};
+use plum_bigint::{BigInt, Sign};
+use plum_crypto::{compute_vrf, VrfPrivateKey, VrfProof};
 use plum_hashing::sha256;
 use plum_ticket::{EPostProof, EPostTicket};
 use plum_tipset::Tipset;
 
+/// A constant used as `personalization` in `compute_proof()` of miner crate.
 pub const DSepTicket: u64 = 1;
+/// A constant used as `personalization` in `compute_proof()`.
 pub const DSepElectionPost: u64 = 2;
 
-pub const EcRandomnessLookback: i64 = 300;
+/// Miner draws a randomness ticket from the randomness chain from a given epoch `SPC_LOOKBACK_POST` back.
+/// Noted as EcRandomnessLookback in lotus.
+pub const SPC_LOOKBACK_POST: u64 = 300;
 
 // CommitmentBytesLen is the number of bytes in a CommR, CommD, CommP, and CommRStar.
 pub const CommitmentBytesLen: usize = 32;
@@ -46,6 +50,8 @@ pub struct SortedPublicSectorInfo(Vec<PublicSectorInfo>);
 impl SortedPublicSectorInfo {
     pub fn new(infos: Vec<PublicSectorInfo>) -> Self {
         let mut infos = infos;
+        // /Users/xuliucheng/src/github.com/filecoin-project/lotus/extern/filecoin-ffi NewSortedPublicSectorInfo
+        // FIXME: Compare comm_r
         infos.sort();
         Self(infos)
     }
@@ -96,43 +102,113 @@ pub struct ProofInput {
     vrfout: Vec<u8>,
 }
 
+pub const sha256bits: u64 = 256;
 pub const SectorChallengeRatioDiv: u64 = 25;
-fn election_post_challenge_count(sectors: u64, faults: u64) -> u64 {
-    if sectors - faults == 0 {
+
+/// Returns the size of sampled sectors against the proving set with the faults sectors excluded.
+///
+/// numSectorsMiner = len(miner.provingSet)
+/// numSectorsSampled = ceil(numSectorsMiner * EPoStSampleRate)
+fn election_post_challenge_count(num_sectors: u64, faults: u64) -> u64 {
+    if num_sectors - faults == 0 {
         return 0;
     }
-    (sectors - faults - 1) / SectorChallengeRatioDiv + 1
+
+    (num_sectors - faults - 1) / SectorChallengeRatioDiv + 1
 }
 
-// TODO: impl is_ticket_winner in block_header?
-fn is_ticket_winner(partial_ticket: &[u8], ssizeI: u64, snum: u64, totpow: &BigInt) -> bool {
-    let ssize: BigInt = ssizeI.into();
-    let ssampled = election_post_challenge_count(snum, 0);
+/// Returns true if the `partial_ticket` is a winner.
+///
+/// const maxChallengeTicketSize = 2^len(H)
+///
+/// def TicketIsWinner(challengeTicket):
+///     Check that `ChallengeTicket < Target`
+///     return challengeTicket * networkPower * numSectorsSampled < activePowerInSector * EC.ExpectedLeadersPerEpoch * maxChallengeTicketSize * numSectorsMiner
+///
+///	// Conceptually we are mapping the pseudorandom, deterministic hash output of the challenge ticket onto [0,1]
+/// by dividing by 2^HashLen and comparing that to the sector's target.
+///
+/// if the challenge ticket hash / max hash val < sectorPower / totalPower * ec.ExpectedLeaders * numSectorsMiner / numSectorsSampled
+/// it is a winning challenge ticket.
+///
+/// note that the sectorPower may differ based on the challenged sector
+///
+/// lhs := challengeTicket * totalPower * numSectorsSampled
+/// rhs := maxTicket * activeSectorPower * numSectorsMiner * self.ExpectedLeaders
+///
+/// We want the miner's expected wins over time to be equal to:
+/// w = minerPower/networkPower * EC.ExpectedLeadersPerEpoch
+///
+/// The miner's likelihood of winning an election in any epoch is, for C tickets randomly drawn
+///
+/// W = C * target
+///   = C * P_i/networkPower * EC.ExpectedLeadersPerEpoch * N/C
+///   = N * P_i/networkPower * EC.ExpectedLeadersPerEpoch
+///
+/// # Argument
+///
+/// * `partial_ticket` -
+/// * `sector_size` -
+/// * `num_sectors` - Size of miner's proving set.
+/// * `network_power` - Total mining power cross the network.
+fn is_ticket_winner(
+    partial_ticket: &[u8],
+    sector_size: u64,
+    num_sectors: u64,
+    network_power: &BigInt,
+) -> bool {
+    let ssize: BigInt = sector_size.into();
+    let ssampled: BigInt = election_post_challenge_count(num_sectors, 0).into();
 
     let h = sha256(partial_ticket);
 
-    // TODO:
+    let lhs = BigInt::from_signed_bytes_be(&h) * network_power * ssampled;
 
-    true
+    let rhs = (ssize << sha256bits as usize) * num_sectors * ExpectedLeadersPerEpoch;
+
+    lhs < rhs
 }
 
-pub fn is_round_winner<A: SyncFullNodeApi, E: ElectionPoStProver>(
+const ExpectedLeadersPerEpoch: u64 = 5;
+
+fn election_post_compute_vrf(
+    worker_priv_key: &VrfPrivateKey,
+    input: &[u8],
+    owner: &Address,
+) -> VrfProof {
+    compute_vrf(&worker_priv_key, DSepElectionPost, input, owner)
+}
+
+pub fn is_round_winner<Api: SyncFullNodeApi + Sync, E: ElectionPoStProver>(
     ts: &Tipset,
     round: u64,
-    miner: &Address,
+    owner: &Address,
     epp: &E,
-    a: &A,
+    api: &Api,
 ) -> Result<Option<ProofInput>> {
-    todo!()
-    /*
-    let mworker = a.state_miner_worker(miner, ts)?;
+    let ts_key = ts.key();
 
-    let pset = a.state_miner_proving_set(miner, ts)?;
-    if pset.is_empty() {
+    // FIXME i64 or u64?
+    // round is essentially the height IMO.
+    let randomness = api.chain_get_randomness_sync(ts_key, (round - SPC_LOOKBACK_POST) as i64)?;
+
+    // Needless as we already have the private key.
+    // let worker_addr = api.state_miner_worker(owner, ts_key).await;
+
+    // The differene with `compute_vrf` in miner:
+    // 1. input
+    // 2. personalization
+    // TODO: pass through worker private key
+    let worker_priv_key = VrfPrivateKey::from_bytes(b"pass private key in fn arg")?;
+    let vrfout = election_post_compute_vrf(&worker_priv_key, &randomness, owner).as_bytes();
+
+    let proving_set = api.state_miner_proving_set_sync(owner, ts_key)?;
+
+    if proving_set.is_empty() {
         return Ok(None);
     }
 
-    let sector_infos = pset
+    let sector_infos = proving_set
         .iter()
         .map(|s| {
             let mut comm_r = [0u8; 32];
@@ -148,22 +224,21 @@ pub fn is_round_winner<A: SyncFullNodeApi, E: ElectionPoStProver>(
     let sector_infos_len = sector_infos.len() as u64;
     let sectors = SortedPublicSectorInfo::new(sector_infos);
 
-    let r = a.chain_get_randomness(ts.key(), EcRandomnessLookback)?;
-    let vrfout = compute_vrf(&mworker, DSepElectionPost, r, miner)?;
-    let hvrf = sha256(&vrfout).to_vec();
-
+    let hvrf = sha256(&vrfout);
     let candidates = epp.generate_candidates(&sectors, &hvrf)?;
-    let pow = a.state_miner_power(miner, ts)?;
-    let ssize = a.state_miner_sector_size(miner, ts)?;
 
+    let power = api.state_miner_power_sync(owner, ts_key)?;
+    let sector_size = api.state_miner_sector_size_sync(owner, ts_key)?;
+
+    // TODO: partial_ticket?
     let winners = candidates
         .into_iter()
         .filter(|c| {
             is_ticket_winner(
-                &sectorbuilder::fr32::fr_into_bytes::<Bls12>(&c.partial_ticket),
-                ssize,
+                &sectorbuilder::fr32::fr_into_bytes(&c.partial_ticket),
+                sector_size,
                 sector_infos_len,
-                &pow.total_power,
+                &power.total_power,
             )
         })
         .collect::<Vec<_>>();
@@ -175,15 +250,16 @@ pub fn is_round_winner<A: SyncFullNodeApi, E: ElectionPoStProver>(
 
     Ok(Some(ProofInput {
         sectors,
-        hvrf,
+        hvrf: hvrf.to_vec(),
         winners,
         vrfout,
     }))
-    */
 }
 
 pub fn compute_proof<E: ElectionPoStProver>(epp: &E, pi: &ProofInput) -> Result<EPostProof> {
-    let proof = epp.compute_proof(&pi.sectors, &pi.hvrf, &pi.winners)?;
+    let proof = epp
+        .compute_proof(&pi.sectors, &pi.hvrf, &pi.winners)
+        .map_err(|e| anyhow!("Failed to compute snark for election proof: {:?}", e))?;
 
     let candidates = pi
         .winners

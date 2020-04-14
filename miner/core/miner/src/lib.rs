@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet,
+    collections::{HashMap, HashSet},
     thread,
     time::{Duration, Instant, SystemTime},
 };
@@ -10,10 +10,9 @@ use log::{debug, error, info, warn};
 use lru::LruCache;
 use thiserror::Error;
 
-use plum_address::{Address, Network};
-use plum_bigint::BigInt;
+use plum_address::Address;
 use plum_block::{BlockHeader, BlockMsg};
-use plum_crypto::{compute_vrf, Signature, SignatureType};
+use plum_crypto::{compute_vrf, CryptoError, Signature, VrfPrivateKey, VrfProof};
 use plum_message::SignedMessage;
 use plum_ticket::{EPostProof, Ticket};
 use plum_tipset::Tipset;
@@ -42,6 +41,8 @@ pub enum Error {
     ApiError(#[from] api::ApiError),
     #[error("anyhow error {0}")]
     AnyhowError(#[from] anyhow::Error),
+    #[error("crypto error {0}")]
+    CryptoError(#[from] CryptoError),
     #[error("other error: {0}")]
     Other(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
@@ -117,7 +118,9 @@ fn sleep(sec: u64) {
 }
 
 impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
-    pub fn register(&mut self) {}
+    pub fn register(&mut self) {
+        // TODO: Keep the worker private key
+    }
 
     pub fn unregister(&mut self) {}
 
@@ -161,7 +164,7 @@ impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
         proof: &EPostProof,
         pending: Vec<SignedMessage>,
     ) -> Result<BlockMsg> {
-        let mut msgs = select_messages(0u8, &base.ts, pending)?;
+        let mut msgs = select_messages(&self.api, &base.ts, pending)?;
 
         if msgs.len() > BLOCK_MESSAGE_LIMIT as usize {
             error!("SelectMessages returned too many messages: {}", msgs.len());
@@ -186,6 +189,7 @@ impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
         )?)
     }
 
+    /// Returns true if the miner power is not zero.
     fn has_power(&self, addr: &Address, ts: &Tipset) -> Result<bool> {
         let power = self
             .api
@@ -194,25 +198,33 @@ impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
         Ok(power.miner_power > 0.into())
     }
 
-    fn get_miner_worker(&self, addr: &Address, ts: Option<&Tipset>) -> Result<Address> {
-        // TODO
-        // api.state_call()
-        //
-        Ok(addr.clone())
+    /// Returns the worker address of miner via a system call.
+    ///
+    /// Miner worker address is the key used to sign `Block`.
+    ///
+    /// FIXME: clean this later
+    fn get_miner_worker(&self, owner_addr: &Address, ts: Option<&Tipset>) -> Result<Address> {
+        todo!("Do a state_call(get_miner_worker), could be needless due to the stored private key")
     }
 
-    fn compute_vrf(&self, miner_addr: &Address, input: Vec<u8>) -> Result<Vec<u8>> {
-        todo!()
-        /*
-        let worker_addr = self.get_miner_worker(miner_addr, None)?;
-        Ok(compute_vrf(&worker_addr, gen::DSepTicket, input, miner_addr).as_bytes())
-        */
+    /// Note the `personalization` passed to `compute_vrf`.
+    fn compute_vrf(&self, addr: &Address, input: &[u8]) -> Result<VrfProof> {
+        // This system call would be needless as we already have the private key
+        // let _worker_addr = self.get_miner_worker(addr, None)?;
+        // TODO: get worker priviate key of worker_addr
+        let worker_priv_key = VrfPrivateKey::from_bytes(b"todo: store priv key on Register")?;
+        return Ok(compute_vrf(&worker_priv_key, gen::DSepTicket, input, addr));
     }
 
+    /// `Ticket` is derived from the minimum ticket from the parent tipset’s block headers, e.g.,
+    /// the best tip set when we are about to mine a new block,
+    #[inline]
     fn compute_ticket(&self, addr: &Address, base: &MiningBase) -> Result<Ticket> {
         let vrf_base = base.ts.min_ticket().vrf_proof.clone();
-        let vrf_out = self.compute_vrf(addr, vrf_base)?;
-        Ok(Ticket { vrf_proof: vrf_out })
+        let vrf_out = self.compute_vrf(addr, &vrf_base)?;
+        Ok(Ticket {
+            vrf_proof: vrf_out.as_bytes(),
+        })
     }
 
     fn mine_one(&self, addr: &Address, base: &mut MiningBase) -> Result<BlockMsg> {
@@ -384,12 +396,63 @@ impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
     }
 }
 
-pub type ActorLookup = u8;
-
-fn select_messages(
-    al: ActorLookup,
+/// Select at most BLOCK_MESSAGE_LIMIT valid messages given the chunk of [`SignedMessage`].
+///
+/// Currently we perform the following validations:
+/// - the nonce of message should always match the sender's.
+/// - the sender has enough balance.
+fn select_messages<Api: SyncFullNodeApi>(
+    actor_lookup: &Api,
     ts: &Tipset,
     msgs: Vec<SignedMessage>,
 ) -> Result<Vec<SignedMessage>> {
-    Ok(Vec::new())
+    let mut out = Vec::new();
+    let mut actors_in_pool = HashMap::new();
+
+    for msg in msgs.into_iter() {
+        let from = msg.message.from.clone();
+
+        if !actors_in_pool.contains_key(&from) {
+            if let Ok(actor) = actor_lookup.state_get_actor_sync(&from, ts.key()) {
+                actors_in_pool.insert(from.clone(), actor);
+            } else {
+                warn!(
+                    "[select_messages]failed to check message sender balance, skipping message: {:?}",
+                    msg
+                );
+                continue;
+            }
+        }
+
+        let from_in_pool = actors_in_pool
+            .get_mut(&from)
+            .expect("Every sender's actor in mempool has been initialized from the state; qed");
+
+        if from_in_pool.balance < msg.message.required_funds() {
+            warn!(
+                "[select_messages]message in mempool does not have enough funds: {}, skipping",
+                msg.cid()
+            );
+            continue;
+        }
+
+        if msg.message.nonce != from_in_pool.nonce {
+            warn!(
+                "[select_messages]message in mempool has a different nonce, message nonce:{}, expected nonce of sender:{}",
+                msg.message.nonce, from_in_pool.nonce
+            );
+            continue;
+        }
+
+        from_in_pool.nonce += 1;
+        from_in_pool.balance -= msg.message.required_funds();
+
+        out.push(msg);
+
+        if out.len() >= BLOCK_MESSAGE_LIMIT as usize {
+            break;
+        }
+    }
+
+    Ok(out)
 }

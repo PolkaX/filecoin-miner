@@ -31,7 +31,7 @@ pub trait ChainApi: RpcClient {
         Ok(tipset.0)
     }
 
-    ///
+    /// Returns the randomness used for PoSt.
     async fn chain_get_randomness(&self, key: &TipsetKey, round: i64) -> Result<Vec<u8>> {
         self.request(
             "ChainGetRandomness",

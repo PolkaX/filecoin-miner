@@ -92,7 +92,8 @@ pub trait StateApi: RpcClient {
         )
         .await
     }
-    ///
+
+    /// Returns a set of all Active sectors for a particular miner `addr`.
     async fn state_miner_proving_set(
         &self,
         addr: &Address,
@@ -107,6 +108,7 @@ pub trait StateApi: RpcClient {
         )
         .await
     }
+
     ///
     async fn state_miner_power(&self, addr: &Address, key: &TipsetKey) -> Result<MinerPower> {
         self.request(
@@ -118,7 +120,8 @@ pub trait StateApi: RpcClient {
         )
         .await
     }
-    ///
+
+    /// Returns the worker address given the miner owner address `addr`.
     async fn state_miner_worker(&self, addr: &Address, key: &TipsetKey) -> Result<Address> {
         let address: crate::helpers::Address = self
             .request(
@@ -131,6 +134,7 @@ pub trait StateApi: RpcClient {
             .await?;
         Ok(address.0)
     }
+
     ///
     async fn state_miner_peer_id(&self, addr: &Address, key: &TipsetKey) -> Result<PeerId> {
         let peer_id: crate::helpers::PeerId = self
