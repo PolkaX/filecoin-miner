@@ -1,0 +1,17 @@
+[package]
+name = "events"
+version = "0.1.0"
+authors = ["PolkaX <https://github.com/PolkaX>"]
+edition = "2018"
+
+[dependencies]
+log = "0.4"
+thiserror = "1.0"
+async-std = { version = "1.5", features = ["unstable"] }
+
+plum_tipset = { path = "../../../vendor/plum/primitives/tipset" }
+plum_params = { path = "../../../vendor/plum/params" }
+
+api = { path = "../api" }
+
+[dev-dependencies]

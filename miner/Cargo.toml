@@ -3,6 +3,8 @@ members = [
     "bin/seal-worker",
     "bin/storage-miner",
     "core/api",
+    "core/async-tools",
+    "core/events",
     "core/sectorbuilder",
     "core/state_machine",
     "core/miner",

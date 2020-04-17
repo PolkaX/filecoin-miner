@@ -271,7 +271,7 @@ pub trait SyncChainApi: ChainApi {
     */
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum HeadChangeType {
     Revert,

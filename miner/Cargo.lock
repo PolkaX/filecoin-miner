@@ -239,6 +239,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-tools"
+version = "0.1.0"
+
+[[package]]
 name = "async-trait"
 version = "0.1.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1179,6 +1183,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d371106cc88ffdfb1eabd7111e432da544f16f3e2d7bf1dfe8bf575f1df045cd"
 dependencies = [
  "version_check 0.9.1",
+]
+
+[[package]]
+name = "events"
+version = "0.1.0"
+dependencies = [
+ "api",
+ "async-std",
+ "log",
+ "plum_params",
+ "plum_tipset",
+ "thiserror",
 ]
 
 [[package]]
@@ -3692,6 +3708,13 @@ dependencies = [
  "serde 1.0.106",
  "serde_bytes",
  "serde_cbor 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "plum_params"
+version = "0.1.0"
+dependencies = [
+ "plum_types",
 ]
 
 [[package]]
