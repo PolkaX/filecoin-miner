@@ -1,3 +1,5 @@
+pub mod task_manager;
+
 use std::future::Future;
 use std::pin::Pin;
 

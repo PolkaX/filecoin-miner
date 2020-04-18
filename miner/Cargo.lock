@@ -241,6 +241,12 @@ dependencies = [
 [[package]]
 name = "async-tools"
 version = "0.1.0"
+dependencies = [
+ "exit-future",
+ "futures 0.3.4",
+ "futures-diagnose",
+ "log",
+]
 
 [[package]]
 name = "async-trait"
