@@ -1,5 +1,4 @@
 use std::borrow::Cow;
-use std::io;
 use std::pin::Pin;
 use std::sync::Arc;
 
@@ -8,8 +7,8 @@ use futures::{channel::mpsc, Future};
 use repo::FsLockedRepo;
 
 use super::{storageminer, Service};
+use crate::constants::{METADATA_SPACE, SECTORBUILDER_SPACE};
 use crate::error::*;
-use crate::{METADATA_SPACE, SECTORBUILDER_SPACE};
 
 pub struct ServiceBuilder {
     repo: FsLockedRepo,
@@ -17,7 +16,7 @@ pub struct ServiceBuilder {
 
 impl ServiceBuilder {
     pub fn new(repo: FsLockedRepo) -> Self {
-        ServiceBuilder { repo }
+        Self { repo }
     }
 
     pub fn build(self) -> Result<Service> {

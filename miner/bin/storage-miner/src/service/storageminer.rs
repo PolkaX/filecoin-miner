@@ -1,5 +1,3 @@
-use std::io;
-
 use datastore::{key, Batching};
 use plum_address::Address;
 
