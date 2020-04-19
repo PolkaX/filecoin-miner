@@ -601,6 +601,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "bytevec"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0d1ee6ad2d80504e769c077bd18fc6b11409518c3f20e4918a5c286d693c2b43"
+
+[[package]]
 name = "c_linked_list"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3650,11 +3656,11 @@ dependencies = [
 name = "plum_crypto"
 version = "0.1.0"
 dependencies = [
+ "base64 0.12.0",
  "bls-signatures",
  "libsecp256k1",
  "plum_address",
  "plum_hashing",
- "plum_types",
  "rand 0.7.3",
  "serde 1.0.106",
  "serde_bytes",
@@ -3705,12 +3711,12 @@ dependencies = [
 name = "plum_message"
 version = "0.1.0"
 dependencies = [
+ "base64 0.12.0",
  "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "multihash",
  "plum_address",
  "plum_bigint",
  "plum_crypto",
- "plum_types",
  "serde 1.0.106",
  "serde_bytes",
  "serde_cbor 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3727,7 +3733,7 @@ dependencies = [
 name = "plum_ticket"
 version = "0.1.0"
 dependencies = [
- "plum_types",
+ "base64 0.12.0",
  "serde 1.0.106",
  "serde_bytes",
 ]
@@ -3748,7 +3754,6 @@ dependencies = [
 name = "plum_types"
 version = "0.1.0"
 dependencies = [
- "base64 0.12.0",
  "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "plum_bigint",
  "serde 1.0.106",
@@ -3757,21 +3762,17 @@ dependencies = [
 [[package]]
 name = "plum_vm"
 version = "0.1.0"
-dependencies = [
- "plum_message",
- "serde 1.0.106",
-]
 
 [[package]]
 name = "plum_wallet"
 version = "0.1.0"
 dependencies = [
+ "base64 0.12.0",
  "bls-signatures",
  "libsecp256k1",
  "parking_lot 0.10.2",
  "plum_address",
  "plum_crypto",
- "plum_types",
  "rand 0.7.3",
  "serde 1.0.106",
  "serde_json",
@@ -4579,6 +4580,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "seal-seed"
+version = "0.1.0"
+dependencies = [
+ "plum_address",
+ "plum_wallet",
+ "repo",
+ "rust-ds-rocksdb",
+ "sectorbuilder",
+ "utils",
+]
+
+[[package]]
 name = "seal-worker"
 version = "0.1.0"
 dependencies = [
@@ -4597,6 +4610,7 @@ name = "sectorbuilder"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bytevec",
  "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "filecoin-proofs-api",
  "libc",

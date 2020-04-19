@@ -2,9 +2,10 @@
 
 pub mod fs;
 pub mod interface;
+mod types;
+mod r#impl;
 #[cfg(test)]
 mod test;
-mod types;
 
 use filecoin_proofs_api::{
     seal::{seal_pre_commit_phase1, seal_pre_commit_phase2, SealPreCommitPhase2Output},
@@ -16,7 +17,7 @@ use datastore::Batching;
 use plum_address::Address;
 use plum_types::SectorSize;
 
-pub use self::types::Config;
+pub use self::types::{Config, user_bytes_for_sector_size};
 pub use filecoin_proofs_api::fr32;
 pub use filecoin_proofs_api::Candidate as EPostCandidate;
 

@@ -14,6 +14,7 @@ rand_xorshift = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 tempfile = "3"
 thiserror = "1.0"
+bytevec = "0.2.0"
 
 # filecoin proof
 filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api", branch = "master" }

@@ -1,4 +1,4 @@
-use crate::constants::SECTOR_SIZES;
+use utils::consts::SECTOR_SIZES;
 use crate::error::*;
 use ds_rocksdb::DatabaseConfig;
 use log::{error, info, warn};

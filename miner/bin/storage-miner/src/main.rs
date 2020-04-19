@@ -1,5 +1,4 @@
 mod command;
-mod constants;
 mod error;
 mod service;
 

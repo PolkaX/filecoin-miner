@@ -7,8 +7,8 @@ use futures::{channel::mpsc, Future};
 use repo::FsLockedRepo;
 
 use super::{storageminer, Service};
-use crate::constants::{METADATA_SPACE, SECTORBUILDER_SPACE};
 use crate::error::*;
+use utils::consts::{METADATA_SPACE, SECTORBUILDER_SPACE};
 
 pub struct ServiceBuilder {
     repo: FsLockedRepo,

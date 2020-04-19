@@ -1,13 +1,16 @@
 // Copyright 2020 PolkaX
 
-use anyhow::Result;
+use crate::{interface::Interface, Batching, SectorBuilder};
+use anyhow::{bail, Result};
+use bytevec::ByteEncodable;
 use cid::Cid;
-use filecoin_proofs_api::{PieceInfo, RegisteredSealProof, UnpaddedBytesAmount};
+use datastore::key::Key;
+use filecoin_proofs_api::{seal::add_piece, PieceInfo, RegisteredSealProof, UnpaddedBytesAmount};
 use plum_actor::abi::{piece, sector};
 use plum_types::SectorNumber;
 use std::io::{Read, Seek, Write};
 
-pub trait Interface {
+impl<DS: Batching> Interface for SectorBuilder<DS> {
     fn add_piece<R, W>(
         &self,
         registered_proof: RegisteredSealProof,
@@ -18,14 +21,19 @@ pub trait Interface {
     ) -> Result<(PieceInfo, UnpaddedBytesAmount)>
     where
         R: Read,
-        W: Read + Write + Seek;
+        W: Read + Write + Seek,
+    {
+        add_piece(registered_proof, source, target, piece_size, piece_lengths)
+    }
 
     fn seal_pre_commit(
         &self,
         number: SectorNumber,
         ticket: sector::Randomness,
         pieces: piece::PieceInfo,
-    ) -> Result<(Cid, Cid)>;
+    ) -> Result<(Cid, Cid)> {
+        bail!("")
+    }
 
     fn seal_commit(
         &self,
@@ -35,15 +43,26 @@ pub trait Interface {
         pieces: &[piece::PieceInfo],
         sealed_cid: Cid,
         unsealed_cid: Cid,
-    ) -> Result<(sector::PoStProof)>;
+    ) -> Result<(sector::PoStProof)> {
+        bail!("")
+    }
 
     fn compute_election_post(
         sector_info: sector::SectorInfo,
         challengeSeed: sector::Randomness,
         winners: &[sector::PoStCandidate],
-    ) -> Result<sector::PoStProof>;
+    ) -> Result<sector::PoStProof> {
+        bail!("")
+    }
 
-    fn finalize_sector(&self, number: SectorNumber);
+    fn finalize_sector(&self, number: SectorNumber) {}
 
-    fn acquire_sector_id(&mut self) -> Result<u64>;
+    fn acquire_sector_id(&mut self) -> Result<u64> {
+        self.last_id += 1;
+        let id = self.last_id.encode::<u8>().unwrap();
+
+        let last_sector_id_key: Key = Key::new("/last");
+        self.ds.put(last_sector_id_key, id);
+        Ok(self.last_id)
+    }
 }

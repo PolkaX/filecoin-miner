@@ -3,7 +3,7 @@ mod init;
 mod run;
 mod sectors;
 
-use crate::constants::{ALL_NAMESPACE, METADATA_SPACE};
+use utils::consts::{ALL_NAMESPACE, METADATA_SPACE};
 use anyhow::Result;
 use ds_rocksdb::DatabaseConfig;
 use plum_address::{set_network, Network};
