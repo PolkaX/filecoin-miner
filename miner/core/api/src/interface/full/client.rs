@@ -11,6 +11,7 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 use cid::{ipld_dag_json as cid_json, Cid};
 use plum_address::{address_json, Address};
 use plum_bigint::{bigint_json, BigInt};
+use plum_types::base64;
 
 use crate::client::RpcClient;
 use crate::errors::Result;
@@ -174,7 +175,7 @@ pub struct DealInfo {
     #[serde(with = "address_json")]
     pub provider: Address,
 
-    #[serde(with = "plum_types::base64")]
+    #[serde(with = "base64")]
     pub piece_ref: Vec<u8>, // cid bytes
     pub size: u64,
 

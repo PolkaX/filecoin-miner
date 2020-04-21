@@ -16,7 +16,7 @@ use plum_message::{
 };
 use plum_ticket::{epost_proof_json, ticket_json, EPostProof, Ticket};
 use plum_tipset::{tipset_json, tipset_key_json, Tipset, TipsetKey};
-use plum_types::Actor;
+use plum_types::{Actor, base64};
 use plum_vm::{execution_result_json, ExecutionResult};
 
 use crate::client::RpcClient;
@@ -243,9 +243,22 @@ pub trait StateApi: RpcClient {
     ) -> Result<HashMap<String, actors::StorageParticipantBalance>>;
     ///
     async fn state_market_deals(&self, key: &TipsetKey) -> Result<HashMap<String, actors::OnChainDeal>>;
-    ///
-    async fn state_market_storage_deal(&self, deal_id: u64, key: &TipsetKey) -> Result<actors::OnChainDeal>;
     */
+    /// return actors::OnChainDeal
+    async fn state_market_storage_deal(
+        &self,
+        deal_id: u64,
+        key: &TipsetKey,
+    ) -> Result<OnChainDeal> {
+        self.request(
+            "StateMarketStorageDeal",
+            vec![
+                crate::helpers::serialize(&deal_id),
+                crate::helpers::serialize_with(tipset_key_json::serialize, key),
+            ],
+        )
+        .await
+    }
     ///
     async fn state_lookup_id(&self, addr: &Address, key: &TipsetKey) -> Result<Address> {
         let address: crate::helpers::Address = self
@@ -475,9 +488,11 @@ pub trait SyncStateApi: StateApi {
     ) -> Result<HashMap<String, actors::StorageParticipantBalance>>;
     ///
     fn state_market_deals_sync(&self, key: &TipsetKey) -> Result<HashMap<String, actors::OnChainDeal>>;
-    ///
-    fn state_market_storage_deal_sync(&self, deal_id: u64, key: &TipsetKey) -> Result<actors::OnChainDeal>;
     */
+    ///
+    fn state_market_storage_deal_sync(&self, deal_id: u64, key: &TipsetKey) -> Result<OnChainDeal> {
+        block_on(async { StateApi::state_market_storage_deal(self, deal_id, key).await })
+    }
     ///
     fn state_lookup_id_sync(&self, addr: &Address, key: &TipsetKey) -> Result<Address> {
         block_on(async { StateApi::state_lookup_id(self, addr, key).await })
@@ -553,9 +568,9 @@ pub struct MsgWait {
 pub struct ChainSectorInfo {
     #[serde(rename = "SectorID")]
     pub sector_id: u64,
-    #[serde(with = "plum_types::base64")]
+    #[serde(with = "base64")]
     pub comm_d: Vec<u8>,
-    #[serde(with = "plum_types::base64")]
+    #[serde(with = "base64")]
     pub comm_r: Vec<u8>,
 }
 
@@ -586,4 +601,27 @@ pub struct InvocResult {
     #[serde(with = "execution_result_json::vec")]
     pub internal_executions: Vec<ExecutionResult>,
     pub error: String,
+}
+
+// TODO: need to move to actor builtin-storagemarket
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct OnChainDeal {
+    #[serde(with = "base64")]
+    piece_ref: Vec<u8>, // cid bytes, TODO: spec says to use cid.Cid, probably not a good idea
+    piece_size: u64,
+
+    #[serde(with = "address_json")]
+    client: Address,
+    #[serde(with = "address_json")]
+    provider: Address,
+
+    proposal_expiration: u64,
+    duration: u64, // TODO: spec
+
+    #[serde(with = "bigint_json")]
+    storage_price_per_epoch: BigInt,
+    #[serde(with = "bigint_json")]
+    storage_collateral: BigInt,
+    activation_epoch: u64, // 0 = inactive
 }

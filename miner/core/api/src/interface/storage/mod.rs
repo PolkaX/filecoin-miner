@@ -116,3 +116,22 @@ pub trait SyncStorageMinerApi: StorageMinerApi {
     fn worker_done_sync(&self, task: u64, res: sectorbuilder::SealRes) -> Result<()>;
     */
 }
+
+/*
+use serde::{Deserialize, Serialize};
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct WorkerStats {
+    local_free: i32,
+    local_reserved: i32,
+    local_total: i32,
+    // todo: post in progress
+    remotes_total: i32,
+    remotes_free: i32,
+
+    add_piece_wait: i32,
+    pre_commit_wait: i32,
+    commit_wait: i32,
+    unseal_wait: i32,
+}
+*/

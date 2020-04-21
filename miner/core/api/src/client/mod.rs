@@ -63,6 +63,18 @@ fn test_sync_api() {
     println!("sync api - version: {:?}", version);
 }
 
+#[test]
+fn test_storage_miner() {
+    /*
+    use crate::interface::StorageMinerApi;
+    async_std::task::block_on(async {
+        let client = WsClient::new_async("127.0.0.1:1234".parse().unwrap(), "/rpc/v0").await;
+        let worker_stats = client.worker_stats().await.unwrap();
+        println!("storage miner api - worker_stats: {:?}", worker_stats);
+    });
+    */
+}
+
 #[async_std::test]
 async fn test_multi_task() {
     use crate::interface::CommonApi;
