@@ -6,8 +6,6 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0"
-byteorder = "1.3"
-paired = "0.18.0"
 
 # plum
 plum_address = { path = "../../../vendor/plum/primitives/address" }

@@ -1,51 +1,34 @@
-use std::{
-    collections::{HashMap, HashSet},
-    thread,
-    time::{Duration, Instant, SystemTime},
-};
+mod error;
+mod utils;
 
-use chrono::{DateTime, NaiveDateTime, Utc};
-use cid::Cid;
+use anyhow::Context;
+use api::SyncFullNodeApi;
+use gen::ElectionPoStProver;
 use log::{debug, error, info, warn};
-use lru::LruCache;
-use thiserror::Error;
-
 use plum_address::Address;
-use plum_block::{BlockHeader, BlockMsg};
-use plum_crypto::{compute_vrf, CryptoError, Signature, VrfPrivateKey, VrfProof};
+use plum_block::BlockMsg;
+use plum_crypto::{compute_vrf, VrfPrivateKey, VrfProof};
 use plum_message::SignedMessage;
 use plum_ticket::{EPostProof, Ticket};
 use plum_tipset::Tipset;
+use std::future::Future;
+use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    thread,
+    time::{Duration, Instant},
+};
 
-use api::SyncFullNodeApi;
-use gen::ElectionPoStProver;
+pub use crate::error::Error;
 
+///
 pub const BLOCK_DELAY: u64 = 45;
+///
 pub const PROPAGATION_DELAY: u64 = 5;
-
+/// Maximum number of messages to be included in a Block.
 pub const BLOCK_MESSAGE_LIMIT: u64 = 512;
 
 pub type Result<T> = anyhow::Result<T, Error>;
-
-#[derive(Error, Debug)]
-pub enum Error {
-    #[error("Check if miner {0} is slashed")]
-    MaybeSlashed(Address),
-    #[error("`{0}` has no miner power")]
-    NoMiningPower(Address),
-    #[error("Empty ProofInput")]
-    EmptyProofInput,
-    #[error("Tipset error {0}")]
-    TipsetError(#[from] plum_tipset::TipsetError),
-    #[error("{0}")]
-    ApiError(#[from] api::ApiError),
-    #[error("anyhow error {0}")]
-    AnyhowError(#[from] anyhow::Error),
-    #[error("crypto error {0}")]
-    CryptoError(#[from] CryptoError),
-    #[error("other error: {0}")]
-    Other(#[from] Box<dyn std::error::Error + Send + Sync>),
-}
 
 #[derive(Eq, PartialEq, Debug, Clone)]
 pub struct MiningBase {
@@ -62,67 +45,35 @@ impl MiningBase {
     }
 }
 
+/// Each miner holds the worker private key to sign the Block without using the API.
+#[derive(Clone)]
 pub struct Miner<Api, E> {
     api: Api,
     epp: E,
-    addresses: Vec<Address>,
+    owner: Address,
+    worker_priv_key: VrfPrivateKey,
     last_work: Option<MiningBase>,
-    mined_block_heights: LruCache<u64, Vec<Address>>,
 }
 
-fn now_timestamp() -> u64 {
-    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => n.as_secs(),
-        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+impl<Api: SyncFullNodeApi, E: 'static + ElectionPoStProver> Miner<Api, E> {
+    // TODO: support multiple miners?
+    pub fn new(
+        &mut self,
+        api: Api,
+        epp: E,
+        owner: Address,
+        worker_priv_key: VrfPrivateKey,
+    ) -> (Arc<RwLock<Self>>, Box<dyn Future<Output = ()> + 'static>) {
+        let miner = Arc::new(RwLock::new(Self {
+            api,
+            epp,
+            owner,
+            worker_priv_key,
+            last_work: None,
+        }));
+        let mining_future = start_mining(miner.clone());
+        (miner, Box::new(mining_future))
     }
-}
-
-fn wait_until(end_timestamp: u64) {
-    thread::sleep(Duration::from_secs(end_timestamp - now_timestamp()))
-}
-
-fn dummy_cid() -> Cid {
-    let cid: Cid = "bafyreicmaj5hhoy5mgqvamfhgexxyergw7hdeshizghodwkjg6qmpoco7i"
-        .parse()
-        .unwrap();
-    cid
-}
-
-fn dummy_block_header(cid: Cid) -> BlockHeader {
-    let id = 123;
-    BlockHeader {
-        miner: Address::new_id_addr(id).unwrap(),
-        ticket: Ticket {
-            vrf_proof: Vec::new(),
-        },
-        epost_proof: EPostProof {
-            proof: Vec::new(),
-            post_rand: Vec::new(),
-            candidates: Vec::new(),
-        },
-        parents: Vec::new(),
-        parent_weight: 0u128.into(),
-        height: 0u64,
-        parent_state_root: cid.clone(),
-        parent_message_receipts: cid.clone(),
-        messages: cid,
-        bls_aggregate: Signature::new_bls("boo! im a signature"),
-        timestamp: 0u64,
-        block_sig: Signature::new_bls("boo! im a signature"),
-        fork_signaling: 0u64,
-    }
-}
-
-fn sleep(sec: u64) {
-    thread::sleep(Duration::from_secs(sec));
-}
-
-impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
-    pub fn register(&mut self) {
-        // TODO: Keep the worker private key
-    }
-
-    pub fn unregister(&mut self) {}
 
     /// Check whether the tipset of chain head is heavier than the one of miner's last_work,
     /// update last_work when the tipset of chain head is heavier.
@@ -152,10 +103,7 @@ impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
         Ok(best_work)
     }
 
-    fn wait(&self) -> Result<()> {
-        Ok(())
-    }
-
+    /// Constructs a new Block using the API.
     fn create_block(
         &self,
         base: &MiningBase,
@@ -164,78 +112,57 @@ impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
         proof: &EPostProof,
         pending: Vec<SignedMessage>,
     ) -> Result<BlockMsg> {
-        let mut msgs = select_messages(&self.api, &base.ts, pending)?;
-
-        if msgs.len() > BLOCK_MESSAGE_LIMIT as usize {
-            error!("SelectMessages returned too many messages: {}", msgs.len());
-            msgs = msgs
-                .into_iter()
-                .take(BLOCK_MESSAGE_LIMIT as usize)
-                .collect();
-        }
-
+        let msgs = select_messages(&self.api, &base.ts, pending)?;
         let uts = base.ts.min_timestamp() + BLOCK_DELAY * (base.null_rounds + 1);
-
-        let nheight = base.ts.height() + base.null_rounds + 1;
-
+        let blk_height = base.ts.height() + base.null_rounds + 1;
         Ok(self.api.miner_create_block_sync(
             &addr,
             base.ts.key(),
             ticket,
             proof,
             &msgs,
-            nheight,
+            blk_height,
             uts,
         )?)
     }
 
     /// Returns true if the miner power is not zero.
+    #[inline]
     fn has_power(&self, addr: &Address, ts: &Tipset) -> Result<bool> {
         let power = self
             .api
             .state_miner_power_sync(addr, ts.key())
-            .map_err(|_| Error::MaybeSlashed(addr.clone()))?;
+            .context(Error::MaybeSlashed(addr.clone()))?;
         Ok(power.miner_power > 0.into())
     }
 
-    /// Returns the worker address of miner via a system call.
-    ///
-    /// Miner worker address is the key used to sign `Block`.
-    ///
-    /// FIXME: clean this later
-    fn get_miner_worker(&self, owner_addr: &Address, ts: Option<&Tipset>) -> Result<Address> {
-        todo!("Do a state_call(get_miner_worker), could be needless due to the stored private key")
-    }
-
     /// Note the `personalization` passed to `compute_vrf`.
-    fn compute_vrf(&self, addr: &Address, input: &[u8]) -> Result<VrfProof> {
-        // This system call would be needless as we already have the private key
-        // let _worker_addr = self.get_miner_worker(addr, None)?;
-        // TODO: get worker priviate key of worker_addr
-        let worker_priv_key = VrfPrivateKey::from_bytes(b"todo: store priv key on Register")?;
-        return Ok(compute_vrf(&worker_priv_key, gen::DSepTicket, input, addr));
+    #[inline]
+    fn compute_vrf(&self, addr: &Address, input: &[u8]) -> VrfProof {
+        return compute_vrf(&self.worker_priv_key, gen::D_SEP_TICKET, input, addr);
     }
 
     /// `Ticket` is derived from the minimum ticket from the parent tipset’s block headers, e.g.,
-    /// the best tip set when we are about to mine a new block,
+    /// the best Tipset when we are about to mine a new block,
     #[inline]
     fn compute_ticket(&self, addr: &Address, base: &MiningBase) -> Result<Ticket> {
         let vrf_base = base.ts.min_ticket().vrf_proof.clone();
-        let vrf_out = self.compute_vrf(addr, &vrf_base)?;
+        let vrf_out = self.compute_vrf(addr, &vrf_base);
         Ok(Ticket {
             vrf_proof: vrf_out.as_bytes(),
         })
     }
 
-    fn mine_one(&self, addr: &Address, base: &mut MiningBase) -> Result<BlockMsg> {
+    /// Try mining a Block.
+    fn mine_one(&self, base: &mut MiningBase) -> Result<BlockMsg> {
         debug!("attempting to mine a block, tipset: {:?}", base.ts.cids());
 
         let start = Instant::now();
 
         // slashed or just have no power yet.
-        if !self.has_power(addr, &base.ts)? {
+        if !self.has_power(&self.owner, &base.ts)? {
             base.null_rounds += 1;
-            return Err(Error::NoMiningPower(addr.clone()));
+            return Err(Error::NoMiningPower(self.owner.clone()));
         }
 
         info!(
@@ -243,14 +170,15 @@ impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
             base.null_rounds
         );
 
-        let ticket = self.compute_ticket(addr, base)?;
+        let ticket = self.compute_ticket(&self.owner, base)?;
 
         let proof_in = gen::is_round_winner(
             &base.ts,
             base.ts.height() + base.null_rounds + 1,
-            addr,
+            &self.owner,
             &self.epp,
             &self.api,
+            &self.worker_priv_key,
         )?;
 
         if proof_in.is_none() {
@@ -258,14 +186,12 @@ impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
             return Err(Error::EmptyProofInput);
         }
 
-        let proof_in = gen::ProofInput::default();
-
         // get pending message early.
         let pending = self.api.mpool_pending_sync(base.ts.key())?;
 
-        let proof = gen::compute_proof(&self.epp, &proof_in)?;
+        let proof = gen::compute_proof(&self.epp, &proof_in.unwrap())?;
 
-        let b = self.create_block(base, addr, &ticket, &proof, pending)?;
+        let b = self.create_block(base, &self.owner, &ticket, &proof, pending)?;
 
         let elapsed = start.elapsed().as_secs();
 
@@ -282,123 +208,70 @@ impl<Api: SyncFullNodeApi, E: ElectionPoStProver> Miner<Api, E> {
 
         Ok(b)
     }
+}
 
-    fn mine(&mut self) -> Result<()> {
-        let mut last_base = MiningBase::new(Tipset::new(vec![dummy_block_header(dummy_cid())])?);
+/// Starts the mining task actually.
+async fn start_mining<Api: SyncFullNodeApi, E: 'static + ElectionPoStProver>(
+    miner: Arc<RwLock<Miner<Api, E>>>,
+) {
+    let mut last_base = None;
 
-        loop {
-            // TODO: handle stop singal?
+    let mut miner = miner.write().unwrap();
 
-            let prebase = match self.get_best_mining_candidate() {
-                Ok(x) => x,
-                Err(err) => {
-                    error!("failed to get best mining candidate: {:?}", err);
-                    thread::sleep(Duration::from_secs(5));
-                    continue;
-                }
-            };
-
-            // Wait until propagation delay period after block we plan to mine on.
-            wait_until(prebase.ts.min_timestamp() + PROPAGATION_DELAY);
-
-            let mut base = match self.get_best_mining_candidate() {
-                Ok(x) => x,
-                Err(err) => {
-                    error!("failed to get best mining candidate: {:?}", err);
-                    continue;
-                }
-            };
-
-            if base == last_base {
-                warn!(
-                    "BestMiningCandidate from the previous round: {:?} (nulls:{})",
-                    last_base.ts.cids(),
-                    last_base.null_rounds
-                );
-                sleep(BLOCK_DELAY);
+    loop {
+        let prebase = match miner.get_best_mining_candidate() {
+            Ok(x) => x,
+            Err(err) => {
+                error!("failed to get best mining candidate: {:?}", err);
+                thread::sleep(Duration::from_secs(5));
                 continue;
             }
+        };
 
-            last_base = base.clone();
+        // Wait until propagation delay period after block we plan to mine on.
+        crate::utils::wait_until(prebase.ts.min_timestamp() + PROPAGATION_DELAY);
 
-            let mut blks = Vec::new();
+        let mut base = match miner.get_best_mining_candidate() {
+            Ok(x) => x,
+            Err(err) => {
+                error!("failed to get best mining candidate: {:?}", err);
+                continue;
+            }
+        };
 
-            // TODO: handle addresses in multiple threads?
-            for addr in self.addresses.iter() {
-                match self.mine_one(addr, &mut base) {
-                    Ok(blk) => blks.push(blk),
-                    Err(err) => {
-                        error!("mining block miner for {} failed: {:?}", addr, err);
-                    }
+        if let Some(ref l_base) = last_base {
+            if base == *l_base {
+                warn!(
+                    "BestMiningCandidate from the previous round: {:?} (nulls:{})",
+                    l_base.ts.cids(),
+                    l_base.null_rounds
+                );
+                crate::utils::sleep(BLOCK_DELAY);
+                continue;
+            }
+        }
+
+        last_base = Some(base.clone());
+
+        match miner.mine_one(&mut base) {
+            Ok(blk) => {
+                info!("miner {} mined one block successfully", miner.owner);
+                // TODO: optimize sync_submit_block_sync logic using Lru like the go version?
+                if let Err(err) = miner.api.sync_submit_block_sync(&blk) {
+                    error!("failed to submit newly mined block: {:?}", err);
                 }
             }
-
-            if !blks.is_empty() {
-                // Check block time
-                let blk_time = DateTime::<Utc>::from_utc(
-                    NaiveDateTime::from_timestamp(blks[0].header.timestamp as i64, 0),
-                    Utc,
-                );
-                let now = Utc::now();
-                // TODO: milliseconds?
-                if now < blk_time {
-                    thread::sleep((blk_time - now).to_std().expect("Won't panic"));
-                } else {
-                    warn!(
-                        "mined block in the past, block-time: {}, time: {}, duration: {}",
-                        blk_time,
-                        now,
-                        blk_time - now
-                    )
-                }
-
-                // Check if there is a miner that created two blocks in this round.
-                let mut winners = HashSet::new();
-                for blk in blks.iter() {
-                    if winners.contains(&blk.header.miner) {
-                        error!("2 blocks for the same miner. Throwing hands in the air. Report this. It it important, blocks: {:?}", blks);
-                        continue;
-                    } else {
-                        winners.insert(blk.header.miner.clone());
-                    }
-                }
-
-                for blk in blks {
-                    // Check if the blk is in the cache.
-                    // If it's already in the cache, no need to run sync_submit_block() then.
-                    if let Some(miners) = self.mined_block_heights.get(&blk.header.height) {
-                        if miners.contains(&blk.header.miner) {
-                            warn!("Created a block at the same height as another block we've created, height:{}, miner:{}, parents:{:?}", blk.header.height, blk.header.miner, blk.header.parents);
-                            continue;
-                        } else {
-                            let v = self
-                                .mined_block_heights
-                                .get_mut(&blk.header.height)
-                                .unwrap();
-                            v.push(blk.header.miner.clone());
-                        }
-                    } else {
-                        self.mined_block_heights
-                            .put(blk.header.height, vec![blk.header.miner.clone()]);
-                    }
-
-                    if let Err(err) = self.api.sync_submit_block_sync(&blk) {
-                        error!("failed to submit newly mined block: {:?}", err);
-                    }
-                }
-            } else {
-                // next_round
-                // next_round = time.unix(base.ts.min_timestamp() + BLOCK_DELAY * base.null_rounds)
-                //
-                // wait_until( base.ts.min_timestamp() + BLOCK_DELAY * base.null_rounds )
+            Err(err) => {
+                error!("mining block miner for {} failed: {:?}", miner.owner, err);
             }
         }
     }
 }
 
-/// Select at most BLOCK_MESSAGE_LIMIT valid messages given the chunk of [`SignedMessage`].
+/// Select at most [`BLOCK_MESSAGE_LIMIT`] valid messages given the chunk of [`SignedMessage`].
 ///
 /// Currently we perform the following validations:
+///
 /// - the nonce of message should always match the sender's.
 /// - the sender has enough balance.
 fn select_messages<Api: SyncFullNodeApi>(

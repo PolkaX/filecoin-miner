@@ -2,28 +2,28 @@ use std::cmp::Ordering;
 
 use anyhow::{anyhow, Result};
 use api::SyncFullNodeApi;
-use byteorder::{LittleEndian, WriteBytesExt};
-use paired::bls12_381::Bls12;
 use sectorbuilder::EPostCandidate;
 
-use plum_address::{Address, Protocol};
-use plum_bigint::{BigInt, Sign};
+use plum_address::Address;
+use plum_bigint::BigInt;
 use plum_crypto::{compute_vrf, VrfPrivateKey, VrfProof};
 use plum_hashing::sha256;
 use plum_ticket::{EPostProof, EPostTicket};
 use plum_tipset::Tipset;
 
 /// A constant used as `personalization` in `compute_proof()` of miner crate.
-pub const DSepTicket: u64 = 1;
+pub const D_SEP_TICKET: u64 = 1;
 /// A constant used as `personalization` in `compute_proof()`.
-pub const DSepElectionPost: u64 = 2;
+pub const D_SEP_ELECTION_POST: u64 = 2;
 
 /// Miner draws a randomness ticket from the randomness chain from a given epoch `SPC_LOOKBACK_POST` back.
 /// Noted as EcRandomnessLookback in lotus.
 pub const SPC_LOOKBACK_POST: u64 = 300;
 
-// CommitmentBytesLen is the number of bytes in a CommR, CommD, CommP, and CommRStar.
+/// CommitmentBytesLen is the number of bytes in a CommR, CommD, CommP, and CommRStar.
 pub const CommitmentBytesLen: usize = 32;
+
+const ExpectedLeadersPerEpoch: u64 = 5;
 
 #[derive(Eq, PartialEq, Debug, Clone, Default)]
 pub struct PublicSectorInfo {
@@ -169,14 +169,13 @@ fn is_ticket_winner(
     lhs < rhs
 }
 
-const ExpectedLeadersPerEpoch: u64 = 5;
-
+#[inline]
 fn election_post_compute_vrf(
     worker_priv_key: &VrfPrivateKey,
     input: &[u8],
     owner: &Address,
 ) -> VrfProof {
-    compute_vrf(&worker_priv_key, DSepElectionPost, input, owner)
+    compute_vrf(&worker_priv_key, D_SEP_ELECTION_POST, input, owner)
 }
 
 pub fn is_round_winner<Api: SyncFullNodeApi + Sync, E: ElectionPoStProver>(
@@ -185,6 +184,7 @@ pub fn is_round_winner<Api: SyncFullNodeApi + Sync, E: ElectionPoStProver>(
     owner: &Address,
     epp: &E,
     api: &Api,
+    worker_priv_key: &VrfPrivateKey,
 ) -> Result<Option<ProofInput>> {
     let ts_key = ts.key();
 
@@ -198,9 +198,7 @@ pub fn is_round_winner<Api: SyncFullNodeApi + Sync, E: ElectionPoStProver>(
     // The differene with `compute_vrf` in miner:
     // 1. input
     // 2. personalization
-    // TODO: pass through worker private key
-    let worker_priv_key = VrfPrivateKey::from_bytes(b"pass private key in fn arg")?;
-    let vrfout = election_post_compute_vrf(&worker_priv_key, &randomness, owner).as_bytes();
+    let vrfout = election_post_compute_vrf(worker_priv_key, &randomness, owner).as_bytes();
 
     let proving_set = api.state_miner_proving_set_sync(owner, ts_key)?;
 
