@@ -1,7 +1,5 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
-use async_std::task::block_on;
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
@@ -11,9 +9,10 @@ use plum_bigint::{bigint_json, BigInt};
 
 use crate::client::RpcClient;
 use crate::errors::Result;
+use crate::helper;
 
 ///
-#[async_trait]
+#[async_trait::async_trait]
 pub trait PaychApi: RpcClient {
     ///
     async fn paych_get(
@@ -25,38 +24,32 @@ pub trait PaychApi: RpcClient {
         self.request(
             "PaychGet",
             vec![
-                crate::helpers::serialize_with(address_json::serialize, from),
-                crate::helpers::serialize_with(address_json::serialize, to),
-                crate::helpers::serialize_with(bigint_json::serialize, ensure_funds),
+                helper::serialize_with(address_json::serialize, from),
+                helper::serialize_with(address_json::serialize, to),
+                helper::serialize_with(bigint_json::serialize, ensure_funds),
             ],
         )
         .await
     }
     ///
     async fn paych_list(&self) -> Result<Vec<Address>> {
-        let addresses: Vec<crate::helpers::Address> = self.request("PaychList", vec![]).await?;
+        let addresses: Vec<helper::Address> = self.request("PaychList", vec![]).await?;
         Ok(addresses.into_iter().map(|address| address.0).collect())
     }
     ///
     async fn paych_status(&self, addr: &Address) -> Result<PaychStatus> {
         self.request(
             "PaychStatus",
-            vec![crate::helpers::serialize_with(
-                address_json::serialize,
-                addr,
-            )],
+            vec![helper::serialize_with(address_json::serialize, addr)],
         )
         .await
     }
     ///
     async fn paych_close(&self, addr: &Address) -> Result<Cid> {
-        let cid: crate::helpers::Cid = self
+        let cid: helper::Cid = self
             .request(
                 "PaychClose",
-                vec![crate::helpers::serialize_with(
-                    address_json::serialize,
-                    addr,
-                )],
+                vec![helper::serialize_with(address_json::serialize, addr)],
             )
             .await?;
         Ok(cid.0)
@@ -65,10 +58,7 @@ pub trait PaychApi: RpcClient {
     async fn paych_allocate_lane(&self, addr: &Address) -> Result<u64> {
         self.request(
             "PaychAllocateLane",
-            vec![crate::helpers::serialize_with(
-                address_json::serialize,
-                addr,
-            )],
+            vec![helper::serialize_with(address_json::serialize, addr)],
         )
         .await
     }
@@ -105,68 +95,6 @@ pub trait PaychApi: RpcClient {
     async fn paych_voucher_list(&self, addr: &Address) -> Result<Vec<SignedVoucher>>;
     ///
     async fn paych_voucher_submit(&self, addr: &Address, signed_vouch: SignedVoucher) -> Result<Cid>;
-    */
-}
-
-pub trait SyncPaychApi: PaychApi {
-    ///
-    fn paych_get_sync(
-        &self,
-        from: &Address,
-        to: &Address,
-        ensure_funds: &BigInt,
-    ) -> Result<ChannelInfo> {
-        block_on(async { PaychApi::paych_get(self, from, to, ensure_funds).await })
-    }
-    ///
-    fn paych_list_sync(&self) -> Result<Vec<Address>> {
-        block_on(async { PaychApi::paych_list(self).await })
-    }
-    ///
-    fn paych_status_sync(&self, addr: &Address) -> Result<PaychStatus> {
-        block_on(async { PaychApi::paych_status(self, addr).await })
-    }
-    ///
-    fn paych_close_sync(&self, addr: &Address) -> Result<Cid> {
-        block_on(async { PaychApi::paych_close(self, addr).await })
-    }
-    ///
-    fn paych_allocate_lane_sync(&self, addr: &Address) -> Result<u64> {
-        block_on(async { PaychApi::paych_allocate_lane(self, addr).await })
-    }
-    /*
-    ///
-    fn paych_new_payment_sync(
-        &self,
-        from: &Address,
-        to: &Address,
-        vouchers: &[VoucherSpec],
-    ) -> Result<PaymentInfo>;
-    ///
-    fn paych_voucher_check_valid_sync(&self, addr: &Address, sign_vouch: SignedVoucher) -> Result<()>;
-    ///
-    fn paych_voucher_check_spendable_sync(
-        &self,
-        addr: &Address,
-        sign_vouch: SignedVoucher,
-        secret: &[u8],
-        proof: &[u8],
-    ) -> Result<bool>;
-    ///
-    fn paych_voucher_create_sync(&self, addr: &Address, amt: BigInt, lane: u64)
-        -> Result<SignedVoucher>;
-    ///
-    fn paych_voucher_add_sync(
-        &self,
-        addr: &Address,
-        signed_vouch: SignedVoucher,
-        proof: &[u8],
-        min_delta: BigInt,
-    ) -> Result<BigInt>;
-    ///
-    fn paych_voucher_list_sync(&self, addr: &Address) -> Result<Vec<SignedVoucher>>;
-    ///
-    fn paych_voucher_submit_sync(&self, addr: &Address, signed_vouch: SignedVoucher) -> Result<Cid>;
     */
 }
 

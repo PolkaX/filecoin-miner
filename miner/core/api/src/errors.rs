@@ -8,5 +8,5 @@ pub type Result<T> = std::result::Result<T, ApiError>;
 pub enum ApiError {
     /// Rpc request error.
     #[error("Rpc request: {0}")]
-    RpcRequest(#[from] jsonrpsee::client::RequestError),
+    Rpc(#[from] jsonrpc_client::RpcError),
 }

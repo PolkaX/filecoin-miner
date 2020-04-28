@@ -59,7 +59,7 @@ pub enum Connectedness {
 pub struct PeerAddrInfo {
     /// peer ID.
     #[serde(rename = "ID")]
-    #[serde(with = "crate::helpers::peer_id")]
+    #[serde(with = "crate::helper::peer_id")]
     pub id: PeerId,
     /// A set of addresses.
     pub addrs: Vec<Multiaddr>,

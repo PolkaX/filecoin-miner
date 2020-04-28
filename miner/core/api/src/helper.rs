@@ -83,10 +83,12 @@ pub struct UnsignedMessage(
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EPostProof(#[serde(with = "plum_ticket::epost_proof_json")] pub plum_ticket::EPostProof);
+pub struct ElectionProof(
+    #[serde(with = "plum_block::election_proof_json")] pub plum_block::ElectionProof,
+);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Ticket(#[serde(with = "plum_ticket::ticket_json")] pub plum_ticket::Ticket);
+pub struct Ticket(#[serde(with = "plum_block::ticket_json")] pub plum_block::Ticket);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TipsetKey(#[serde(with = "plum_tipset::tipset_key_json")] pub plum_tipset::TipsetKey);

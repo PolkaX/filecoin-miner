@@ -4,11 +4,9 @@
 
 mod client;
 mod errors;
-mod helpers;
+mod helper;
 mod interface;
 
-pub use self::client::{HttpClient, WsClient};
-pub use self::errors::ApiError;
+pub use self::client::{HttpTransport, WebSocketTransport};
+pub use self::errors::{ApiError, Result};
 pub use self::interface::*;
-
-pub use jsonrpsee::client::Subscription;

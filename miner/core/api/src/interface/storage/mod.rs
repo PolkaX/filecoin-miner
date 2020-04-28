@@ -1,44 +1,45 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
-pub mod helpers;
-pub use self::helpers::*;
+mod types;
+
+pub use self::types::*;
 
 use std::collections::HashMap;
 
-use async_std::task::block_on;
-use async_trait::async_trait;
-
+use cid::{ipld_dag_json as cid_json, Cid};
 use plum_address::{address_json, Address};
+use plum_bigint::{bigint_json, BigInt};
+use plum_tipset::Tipset;
 
 use crate::client::RpcClient;
 use crate::errors::Result;
+use crate::helper;
 
 /// The StorageMiner API Interface
-#[async_trait]
+#[async_trait::async_trait]
 pub trait StorageMinerApi: RpcClient {
     ///
     async fn actor_address(&self) -> Result<Address> {
-        let addr: crate::helpers::Address = self.request("ActorAddress", vec![]).await?;
+        let addr: helper::Address = self.request("ActorAddress", vec![]).await?;
         Ok(addr.0)
     }
     ///
     async fn actor_sector_size(&self, addr: &Address) -> Result<u64> {
         self.request(
             "ActorSectorSize",
-            vec![crate::helpers::serialize_with(
-                address_json::serialize,
-                addr,
-            )],
+            vec![helper::serialize_with(address_json::serialize, addr)],
         )
         .await
     }
-
-    // Temp api for testing
     ///
+    async fn mining_base(&self) -> Result<Tipset> {
+        let tipset: helper::Tipset = self.request("MiningBase", vec![]).await?;
+        Ok(tipset.0)
+    }
+    /// Temp api for testing
     async fn pledge_sector(&self) -> Result<()> {
         self.request("PledgeSector", vec![]).await
     }
-
     /*
     /// Get the status of a given sector by ID
     async fn sector_status(&self, sector_id: u64) -> Result<SectorInfo>;
@@ -52,86 +53,85 @@ pub trait StorageMinerApi: RpcClient {
         self.request("SectorsRefs", vec![]).await
     }
     ///
-    async fn sectors_update(&self, sector_id: u64, state: SectorState) -> Result<()> {
+    async fn sectors_update(&self, sector_id: u64, state: &SectorState) -> Result<()> {
         self.request(
             "SectorsUpdate",
-            vec![
-                crate::helpers::serialize(&sector_id),
-                crate::helpers::serialize(&state),
-            ],
+            vec![helper::serialize(&sector_id), helper::serialize(&state)],
         )
         .await
     }
 
     /*
     ///
-    async fn worker_stats(&self) -> Result<sectorbuilder::WorkerStats>;
-    /// WorkerQueue registers a remote worker
-    async fn worker_queue(&self, cfg: sectorbuilder::WorkerCfg) -> Result<<-chan sectorbuilder::WorkerTask>;
+    async fn storage_list(&self) -> Result<HashMap<stores::ID, stores::Decl>> {
+        self.request("StorageList", vec![]).await
+    }
     ///
-    async fn worker_done(&self, task: u64, res: sectorbuilder::SealRes) -> Result<()>;
+    async fn storage_local(&self) -> Result<HashMap<stores::ID, String>> {
+        self.request("StorageLocal", vec![]).await
+    }
+    ///
+    async fn storage_stat(&self, id: stores::ID) -> Result<stores::FsStat> {
+        self.request("StorageStat", vec![id]).await
+    }
     */
-}
 
-/// The SyncStorageMiner API Interface
-pub trait SyncStorageMinerApi: StorageMinerApi {
     ///
-    fn actor_address_sync(&self) -> Result<Address> {
-        block_on(async { StorageMinerApi::actor_address(self).await })
+    async fn worker_connect(&self, s: &str) -> Result<()> {
+        self.request("WorkerConnect", vec![helper::serialize(&s)])
+            .await
     }
-    ///
-    fn actor_sector_size_sync(&self, addr: &Address) -> Result<u64> {
-        block_on(async { StorageMinerApi::actor_sector_size(self, addr).await })
-    }
-
-    // Temp api for testing
-    ///
-    fn pledge_sector_sync(&self) -> Result<()> {
-        block_on(async { StorageMinerApi::pledge_sector(self).await })
-    }
-
-    /*
-    /// Get the status of a given sector by ID
-    fn sector_status_sync(&self, sector_id: u64) -> Result<SectorInfo>;
-    */
-    /// List all staged sectors
-    fn sectors_list_sync(&self) -> Result<Vec<u64>> {
-        block_on(async { StorageMinerApi::sectors_list(self).await })
-    }
-    ///
-    fn sectors_refs_sync(&self) -> Result<HashMap<String, Vec<SealedRef>>> {
-        block_on(async { StorageMinerApi::sectors_refs(self).await })
-    }
-    ///
-    fn sectors_update_sync(&self, sector_id: u64, state: SectorState) -> Result<()> {
-        block_on(async { StorageMinerApi::sectors_update(self, sector_id, state).await })
-    }
-
     /*
     ///
-    fn worker_stats_sync(&self) -> Result<sectorbuilder::WorkerStats>;
-    /// WorkerQueue registers a remote worker
-    fn worker_queue_sync(&self, cfg: sectorbuilder::WorkerCfg) -> Result<<-chan sectorbuilder::WorkerTask>;
-    ///
-    fn worker_done_sync(&self, task: u64, res: sectorbuilder::SealRes) -> Result<()>;
+    async fn worker_stats(&self) -> Result<HashMap<u64, storiface::WorkerStats>> {
+        self.request("WorkStats", vec![]).await
+    }
     */
-}
 
-/*
-use serde::{Deserialize, Serialize};
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "PascalCase")]
-pub struct WorkerStats {
-    local_free: i32,
-    local_reserved: i32,
-    local_total: i32,
-    // todo: post in progress
-    remotes_total: i32,
-    remotes_free: i32,
+    async fn market_import_deal_data(&self, prop_cid: &Cid, path: &str) -> Result<()> {
+        self.request(
+            "MarketImportDealData",
+            vec![
+                helper::serialize_with(cid_json::serialize, prop_cid),
+                helper::serialize(&path),
+            ],
+        )
+        .await
+    }
+    /*
+    async fn market_list_deals(&self) -> Result<Vec<storagemarket::StorageDeal>> {
+        self.request("MarketListDeals", vec![]).await
+    }
+    async fn market_list_incomplete_deals(&self) -> Result<Vec<storagemarket::MinerDeal>> {
+        self.request("MarketListIncompleteDeals", vec![]).await
+    }
+    */
+    async fn market_set_price(&self, price: &BigInt) -> Result<()> {
+        self.request(
+            "MarketSetPrice",
+            vec![helper::serialize_with(bigint_json::serialize, price)],
+        )
+        .await
+    }
 
-    add_piece_wait: i32,
-    pre_commit_wait: i32,
-    commit_wait: i32,
-    unseal_wait: i32,
+    async fn deals_import_data(&self, deal_prop_cid: &Cid, file: &str) -> Result<()> {
+        self.request(
+            "DealsImportData",
+            vec![
+                helper::serialize_with(cid_json::serialize, deal_prop_cid),
+                helper::serialize(&file),
+            ],
+        )
+        .await
+    }
+    /*
+    async fn deals_list(&self) -> Result<Vec<storagemarket::StorageDeal>> {
+        self.request("DealsList", vec![]).await
+    }
+    */
+
+    async fn storage_add_local(&self, path: &str) -> Result<()> {
+        self.request("StorageAddLocal", vec![helper::serialize(&path)])
+            .await
+    }
 }
-*/

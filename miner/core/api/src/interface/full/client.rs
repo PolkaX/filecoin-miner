@@ -1,52 +1,33 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
-use std::time::Duration;
-
-use async_std::task::block_on;
-use async_trait::async_trait;
 use libp2p_core::PeerId;
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
+// use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use cid::{ipld_dag_json as cid_json, Cid};
 use plum_address::{address_json, Address};
 use plum_bigint::{bigint_json, BigInt};
-use plum_types::base64;
 
 use crate::client::RpcClient;
 use crate::errors::Result;
+use crate::helper;
 
 ///
-#[async_trait]
+#[async_trait::async_trait]
 pub trait ClientApi: RpcClient {
     /// ClientImport imports file under the specified path into filestore
-    async fn client_import(&self, path: &str) -> Result<Cid> {
-        let cid: crate::helpers::Cid = self
-            .request("ClientImport", vec![crate::helpers::serialize(&path)])
+    async fn client_import(&self, r#ref: &FileRef) -> Result<Cid> {
+        let cid: helper::Cid = self
+            .request("ClientImport", vec![helper::serialize(r#ref)])
             .await?;
         Ok(cid.0)
     }
 
+    /*
     ///
-    async fn client_start_deal(
-        &self,
-        cid: &Cid,
-        addr: &Address,
-        miner: &Address,
-        epoch_price: &BigInt,
-        blocks_duration: u64,
-    ) -> Result<Cid> {
-        let cid: crate::helpers::Cid = self
-            .request(
-                "ClientStartDeal",
-                vec![
-                    crate::helpers::serialize_with(cid_json::serialize, cid),
-                    crate::helpers::serialize_with(address_json::serialize, addr),
-                    crate::helpers::serialize_with(address_json::serialize, miner),
-                    crate::helpers::serialize_with(bigint_json::serialize, epoch_price),
-                    crate::helpers::serialize(&blocks_duration),
-                ],
-            )
+    async fn client_start_deal(&self, params: &StartDealParams) -> Result<Cid> {
+        let cid: helper::Cid = self
+            .request("ClientStartDeal", vec![helper::serialize(params)])
             .await?;
         Ok(cid.0)
     }
@@ -55,7 +36,7 @@ pub trait ClientApi: RpcClient {
     async fn client_get_deal_info(&self, cid: &Cid) -> Result<DealInfo> {
         self.request(
             "ClientGetDealInfo",
-            vec![crate::helpers::serialize_with(cid_json::serialize, cid)],
+            vec![helper::serialize_with(cid_json::serialize, cid)],
         )
         .await
     }
@@ -64,12 +45,13 @@ pub trait ClientApi: RpcClient {
     async fn client_list_deals(&self) -> Result<Vec<DealInfo>> {
         self.request("ClientListDeals", vec![]).await
     }
+    */
 
     ///
     async fn client_has_local(&self, root: &Cid) -> Result<bool> {
         self.request(
             "ClientHasLocal",
-            vec![crate::helpers::serialize_with(cid_json::serialize, root)],
+            vec![helper::serialize_with(cid_json::serialize, root)],
         )
         .await
     }
@@ -78,85 +60,70 @@ pub trait ClientApi: RpcClient {
     async fn client_find_data(&self, root: &Cid) -> Result<Vec<QueryOffer>> {
         self.request(
             "ClientFindData",
-            vec![crate::helpers::serialize_with(cid_json::serialize, root)],
+            vec![helper::serialize_with(cid_json::serialize, root)],
         )
         .await
     }
 
     ///
-    async fn client_retrieve(&self, order: &RetrievalOrder, path: &str) -> Result<()> {
+    async fn client_retrieve(&self, order: &RetrievalOrder, r#ref: &FileRef) -> Result<()> {
         self.request(
             "ClientFindData",
-            vec![
-                crate::helpers::serialize(order),
-                crate::helpers::serialize(&path),
-            ],
+            vec![helper::serialize(order), helper::serialize(r#ref)],
         )
         .await
     }
     /*
     ///
     async fn client_query_ask(&self, peer_id: &PeerId, miner: &Address) -> Result<SignedStorageAsk>;
-
+    */
+    ///
+    async fn client_calc_comm_p(&self, inpath: &str, miner: &Address) -> Result<CommPRet> {
+        self.request(
+            "ClientCalcCommP",
+            vec![
+                helper::serialize(&inpath),
+                helper::serialize_with(address_json::serialize, miner),
+            ],
+        )
+        .await
+    }
+    ///
+    async fn client_gen_car(&self, r#ref: &FileRef, outpath: &str) -> Result<CommPRet> {
+        self.request(
+            "ClientCalcCommP",
+            vec![helper::serialize(r#ref), helper::serialize(&outpath)],
+        )
+        .await
+    }
+    /*
     ///
      async fn client_list_imports(&self) -> Result<Vec<Import>>;
     */
 }
 
-pub trait SyncClientApi: ClientApi {
-    /// ClientImport imports file under the specified path into filestore
-    fn client_import_sync(&self, path: &str) -> Result<Cid> {
-        block_on(async { ClientApi::client_import(self, path).await })
-    }
-
-    ///
-    fn client_start_deal_sync(
-        &self,
-        cid: &Cid,
-        addr: &Address,
-        miner: &Address,
-        epoch_price: &BigInt,
-        blocks_duration: u64,
-    ) -> Result<Cid> {
-        block_on(async {
-            ClientApi::client_start_deal(self, cid, addr, miner, epoch_price, blocks_duration).await
-        })
-    }
-
-    ///
-    fn client_get_deal_info_sync(&self, cid: &Cid) -> Result<DealInfo> {
-        block_on(async { ClientApi::client_get_deal_info(self, cid).await })
-    }
-
-    ///
-    fn client_list_deals_sync(&self) -> Result<Vec<DealInfo>> {
-        block_on(async { ClientApi::client_list_deals(self).await })
-    }
-
-    ///
-    fn client_has_local_sync(&self, root: &Cid) -> Result<bool> {
-        block_on(async { ClientApi::client_has_local(self, root).await })
-    }
-
-    ///
-    fn client_find_data_sync(&self, root: &Cid) -> Result<Vec<QueryOffer>> {
-        block_on(async { ClientApi::client_find_data(self, root).await })
-    }
-
-    ///
-    fn client_retrieve_sync(&self, order: &RetrievalOrder, path: &str) -> Result<()> {
-        block_on(async { ClientApi::client_retrieve(self, order, path).await })
-    }
-    /*
-    ///
-    fn client_query_ask_sync(&self, peer_id: &PeerId, miner: &Address) -> Result<SignedStorageAsk>;
-
-    ///
-     fn client_list_imports_sync(&self) -> Result<Vec<Import>>;
-    */
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct FileRef {
+    pub path: String,
+    #[serde(rename = "IsCAR")]
+    pub is_car: bool,
 }
 
 /*
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct StartDealParams {
+    // data: storagemarket::DataRef,
+    #[serde(with = "address_json")]
+    pub wallet: Address,
+    #[serde(with = "address_json")]
+    pub miner: Address,
+    #[serde(with = "bigint_json")]
+    pub epoch_price: BigInt,
+    pub min_blocks_duration: u64,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Import {
     /*pub status: filestore.Status*/
@@ -164,19 +131,20 @@ pub struct Import {
     pub file_path: PathBuf,
     pub size: u64,
 }
-*/
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct DealInfo {
     #[serde(with = "cid_json")]
     pub proposal_cid: Cid,
-    pub state: DealStates,
+    // pub state: DealStates,
+    pub message: String,
     #[serde(with = "address_json")]
     pub provider: Address,
 
-    #[serde(with = "base64")]
-    pub piece_ref: Vec<u8>, // cid bytes
+    #[serde(rename = "PieceCID")]
+    #[serde(with = "cid_json")]
+    pub piece_cid: Cid,
     pub size: u64,
 
     #[serde(with = "bigint_json")]
@@ -199,6 +167,7 @@ pub enum DealStates {
     DealComplete,
     DealError,
 }
+*/
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -211,11 +180,12 @@ pub struct QueryOffer {
     pub size: u64,
     #[serde(with = "bigint_json")]
     pub min_price: BigInt,
-
+    pub payment_interval: u64,
+    pub payment_interval_increase: u64,
     #[serde(with = "address_json")]
     pub miner: Address,
     #[serde(rename = "MinerPeerID")]
-    #[serde(with = "crate::helpers::peer_id")]
+    #[serde(with = "crate::helper::peer_id")]
     pub miner_peer_id: PeerId,
 }
 
@@ -225,8 +195,10 @@ impl QueryOffer {
             root: self.root.clone(),
             size: self.size,
             total: self.min_price.clone(),
-
+            payment_interval: self.payment_interval,
+            payment_interval_increase: self.payment_interval_increase,
             client,
+
             miner: self.miner.clone(),
             miner_peer_id: self.miner_peer_id.clone(),
         }
@@ -244,11 +216,22 @@ pub struct RetrievalOrder {
     #[serde(with = "bigint_json")]
     pub total: BigInt,
 
+    pub payment_interval: u64,
+    pub payment_interval_increase: u64,
+
     #[serde(with = "address_json")]
     pub client: Address,
     #[serde(with = "address_json")]
     pub miner: Address,
     #[serde(rename = "MinerPeerID")]
-    #[serde(with = "crate::helpers::peer_id")]
+    #[serde(with = "crate::helper::peer_id")]
     pub miner_peer_id: PeerId,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "PascalCase")]
+pub struct CommPRet {
+    #[serde(with = "cid_json")]
+    pub root: Cid,
+    pub size: u64,
 }

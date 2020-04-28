@@ -24,7 +24,6 @@ plum_bigint = { path = "../../../vendor/plum/primitives/bigint" }
 plum_block = { path = "../../../vendor/plum/primitives/block" }
 plum_crypto = { path = "../../../vendor/plum/crypto" }
 plum_message = { path = "../../../vendor/plum/primitives/message" }
-plum_ticket = { path = "../../../vendor/plum/primitives/ticket" }
 plum_tipset = { path = "../../../vendor/plum/primitives/tipset" }
 
 # core

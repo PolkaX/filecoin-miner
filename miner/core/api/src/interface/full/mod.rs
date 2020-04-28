@@ -3,6 +3,7 @@
 mod chain;
 mod client;
 mod market;
+mod miner;
 mod mpool;
 mod paych;
 mod state;
@@ -12,30 +13,17 @@ mod wallet;
 pub use self::chain::*;
 pub use self::client::*;
 pub use self::market::*;
+pub use self::miner::*;
 pub use self::mpool::*;
 pub use self::paych::*;
 pub use self::state::*;
 pub use self::sync::*;
 pub use self::wallet::*;
 
-use async_trait::async_trait;
-
 ///
-#[async_trait]
+#[async_trait::async_trait]
 pub trait FullNodeApi:
-    SyncApi + WalletApi + StateApi + MpoolApi + MarketApi + ChainApi + PaychApi + ClientApi
-{
-}
-
-pub trait SyncFullNodeApi:
-    SyncSyncApi
-    + SyncWalletApi
-    + SyncStateApi
-    + SyncMpoolApi
-    + SyncMarketApi
-    + SyncChainApi
-    + SyncPaychApi
-    + SyncClientApi
+    SyncApi + WalletApi + StateApi + MinerApi + MpoolApi + MarketApi + ChainApi + PaychApi + ClientApi
 {
 }
 

@@ -1,8 +1,10 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
 use serde::{Deserialize, Serialize};
-use serde_repr::{Deserialize_repr, Serialize_repr};
 
+pub type SectorState = String;
+/*
+use serde_repr::{Deserialize_repr, Serialize_repr};
 ///
 #[repr(u8)]
 #[derive(Copy, Clone, Debug, Serialize_repr, Deserialize_repr)]
@@ -48,6 +50,7 @@ pub enum SectorState {
     ///
     FaultedFinal = 31,
 }
+*/
 
 /*
 ///
