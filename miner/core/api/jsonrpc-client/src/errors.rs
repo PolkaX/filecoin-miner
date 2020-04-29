@@ -9,5 +9,5 @@ pub enum RpcError {
     #[error("{0}")]
     WebSocket(#[from] async_tungstenite::tungstenite::Error),
     #[error("{0}")]
-    RpcType(#[from] crate::types::Error),
+    RpcResponse(#[from] crate::types::Error),
 }

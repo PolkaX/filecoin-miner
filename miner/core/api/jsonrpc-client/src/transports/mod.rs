@@ -56,7 +56,8 @@ pub trait BatchTransport: Transport {
     /// Execute a batch of prepared RPC calls.
     async fn execute_batch<I>(&self, requests: I) -> Result<Response>
     where
-        I: Iterator<Item = (RequestId, Call)> + Send,
+        I: IntoIterator<Item = (RequestId, Call)> + Send,
+        I::IntoIter: Send,
     {
         let mut iter = requests.into_iter();
         let (id, first): (RequestId, Option<Call>) = match iter.next() {
@@ -79,7 +80,8 @@ pub trait BatchTransport: Transport {
     /// Send a batch of RPC calls with the given method and parameters.
     async fn send_batch<I, M>(&self, method_and_params: I) -> Result<Vec<Result<Value>>>
     where
-        I: Iterator<Item = (M, Params)> + Send,
+        I: IntoIterator<Item = (M, Params)> + Send,
+        I::IntoIter: Send,
         M: Into<String>,
     {
         let requests = method_and_params
@@ -107,7 +109,8 @@ pub trait BatchTransport: Transport {
     /// Once a request result returns an error, which will be returned directly.
     async fn send_batch_same<I, M, T>(&self, method: M, batch_params: I) -> Result<Vec<T>>
     where
-        I: Iterator<Item = Params> + Send,
+        I: IntoIterator<Item = Params> + Send,
+        I::IntoIter: Send,
         M: Into<String> + Send,
         T: DeserializeOwned,
     {
