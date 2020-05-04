@@ -383,6 +383,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7ba5a5c4df8ac8673f22698f443ef1ce3853d7f22d5a15ebf66b9a7553b173dd"
 
 [[package]]
+name = "bitmask"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5da9b3d9f6f585199287a473f4f8dfab6566cf827d15c00c219f53c645687ead"
+
+[[package]]
 name = "bitvec"
 version = "0.17.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3666,6 +3672,7 @@ dependencies = [
  "base64 0.12.0",
  "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "plum_bigint",
+ "plum_hash",
  "serde 1.0.106",
 ]
 
@@ -4520,6 +4527,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "sector-storage"
+version = "0.1.0"
+dependencies = [
+ "stores",
+]
+
+[[package]]
 name = "sectorbuilder"
 version = "0.1.0"
 dependencies = [
@@ -5036,6 +5050,22 @@ dependencies = [
  "serde 1.0.106",
  "sha2ni",
  "storage-proofs-core",
+]
+
+[[package]]
+name = "stores"
+version = "0.1.0"
+dependencies = [
+ "bitmask",
+ "lazy_static 1.4.0",
+ "log",
+ "plum_actor",
+ "plum_bigint",
+ "plum_types",
+ "regex",
+ "thiserror",
+ "url 2.1.1",
+ "uuid 0.8.1",
 ]
 
 [[package]]

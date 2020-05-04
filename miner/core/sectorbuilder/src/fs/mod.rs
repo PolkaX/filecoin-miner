@@ -347,7 +347,11 @@ impl Default for PathConfig {
 }
 
 pub fn SimplePath(dir: String) -> Vec<PathConfig> {
-    vec![PathConfig{path: PathBuf::from(dir), cache: true, weight: 1}]
+    vec![PathConfig {
+        path: PathBuf::from(dir),
+        cache: true,
+        weight: 1,
+    }]
 }
 
 pub fn OpenFs(cfg: &[PathConfig]) -> FS {

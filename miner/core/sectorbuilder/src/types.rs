@@ -1,8 +1,8 @@
 // Copyright 2020 PolkaX
 
 use crate::fs;
-use plum_address::Address;
 use plum_actor::abi::piece;
+use plum_address::Address;
 
 #[derive(Debug, Clone)]
 pub struct Config {

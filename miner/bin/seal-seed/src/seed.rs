@@ -4,7 +4,9 @@ use ds_rocksdb::DatabaseConfig;
 use plum_address::Address;
 use plum_wallet::KeyInfo;
 use repo::{FsRepo, RepoType};
-use sectorbuilder::{fs as FS, Config, SectorBuilder, user_bytes_for_sector_size, interface::Interface};
+use sectorbuilder::{
+    fs as FS, interface::Interface, user_bytes_for_sector_size, Config, SectorBuilder,
+};
 use std::{fs, path::PathBuf};
 use utils::consts;
 
@@ -58,7 +60,6 @@ pub fn pre_seal(
         let mut sealed_sectors = Vec::new();
         for i in 0..sectors {
             let sid = sb.acquire_sector_id().unwrap();
-
         }
     }
     None

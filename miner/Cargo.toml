@@ -6,6 +6,8 @@ members = [
     "core/api",
     "core/async-tools",
     "core/events",
+    "core/sector-storage",
+    "core/sector-storage/stores",
     "core/sectorbuilder",
     "core/state_machine",
     "core/miner",

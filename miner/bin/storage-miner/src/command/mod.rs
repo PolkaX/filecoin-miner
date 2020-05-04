@@ -3,7 +3,6 @@ mod init;
 mod run;
 mod sectors;
 
-use utils::consts::{ALL_NAMESPACE, METADATA_SPACE};
 use anyhow::Result;
 use ds_rocksdb::DatabaseConfig;
 use plum_address::{set_network, Network};
@@ -12,6 +11,7 @@ use std::ffi::OsStr;
 use std::fmt;
 use std::path::PathBuf;
 use structopt::StructOpt;
+use utils::consts::{ALL_NAMESPACE, METADATA_SPACE};
 use utils::native_log;
 
 #[derive(Clone, Debug)]

@@ -1,4 +1,3 @@
-
 pub const METADATA_SPACE: &'static str = "/metadata";
 pub const BLOCK_SPACE: &'static str = "/block";
 pub const STAGING_SPACE: &'static str = "/staging";

@@ -1,4 +1,3 @@
-use utils::consts::SECTOR_SIZES;
 use crate::error::*;
 use ds_rocksdb::DatabaseConfig;
 use log::{error, info, warn};
@@ -7,6 +6,7 @@ use repo::{FsRepo, RepoType};
 use std::path::PathBuf;
 use std::{fs, io};
 use structopt::StructOpt;
+use utils::consts::SECTOR_SIZES;
 
 #[derive(StructOpt, Debug)]
 pub struct Init {
