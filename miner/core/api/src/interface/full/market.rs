@@ -1,6 +1,6 @@
 // Copyright 2019-2020 PolkaX Authors. Licensed under GPL-3.0.
 
-use plum_address::{address_json, Address};
+use plum_address::Address;
 use plum_bigint::{bigint_json, BigInt};
 
 use crate::client::RpcClient;
@@ -20,8 +20,8 @@ pub trait MarketApi: RpcClient {
         self.request(
             "MarketEnsureAvailable",
             vec![
-                helper::serialize_with(address_json::serialize, addr1),
-                helper::serialize_with(address_json::serialize, addr2),
+                helper::serialize(addr1),
+                helper::serialize(addr2),
                 helper::serialize_with(bigint_json::serialize, amt),
             ],
         )

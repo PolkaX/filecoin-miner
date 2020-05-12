@@ -15,7 +15,7 @@ use filecoin_proofs_api::{
 use datastore::Batching;
 
 use plum_address::Address;
-use plum_types::SectorSize;
+use plum_sector::SectorSize;
 
 pub use self::types::{user_bytes_for_sector_size, Config};
 pub use filecoin_proofs_api::fr32;

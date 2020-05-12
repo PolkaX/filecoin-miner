@@ -3,7 +3,7 @@ use std::slice::Iter;
 
 use bitmask::bitmask;
 
-use plum_actor::abi::sector::SectorId;
+use plum_sector::SectorId;
 
 use crate::error::{Result, StoresError};
 

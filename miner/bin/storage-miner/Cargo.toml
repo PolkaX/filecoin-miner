@@ -17,8 +17,8 @@ structopt = "0.3"
 thiserror = "1.0"
 
 # ipfs
-datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
-ds-rocksdb = { package = "rust-ds-rocksdb", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+datastore = { git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+ds-rocksdb = { git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 
 # plum
 plum_address = { path = "../../../vendor/plum/primitives/address" }

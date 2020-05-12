@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use url::Url;
 
-use plum_actor::abi::sector::{SectorId, SectorInfo};
+use plum_sector::{SectorId, SectorInfo};
 use plum_bigint::BigUint;
 
 use log::{info, warn};

@@ -6,8 +6,8 @@ pub use self::types::*;
 
 use std::collections::HashMap;
 
-use cid::{ipld_dag_json as cid_json, Cid};
-use plum_address::{address_json, Address};
+use cid::Cid;
+use plum_address::Address;
 use plum_bigint::{bigint_json, BigInt};
 use plum_tipset::Tipset;
 
@@ -20,21 +20,16 @@ use crate::helper;
 pub trait StorageMinerApi: RpcClient {
     ///
     async fn actor_address(&self) -> Result<Address> {
-        let addr: helper::Address = self.request("ActorAddress", vec![]).await?;
-        Ok(addr.0)
+        self.request("ActorAddress", vec![]).await
     }
     ///
     async fn actor_sector_size(&self, addr: &Address) -> Result<u64> {
-        self.request(
-            "ActorSectorSize",
-            vec![helper::serialize_with(address_json::serialize, addr)],
-        )
-        .await
+        self.request("ActorSectorSize", vec![helper::serialize(addr)])
+            .await
     }
     ///
     async fn mining_base(&self) -> Result<Tipset> {
-        let tipset: helper::Tipset = self.request("MiningBase", vec![]).await?;
-        Ok(tipset.0)
+        self.request("MiningBase", vec![]).await
     }
     /// Temp api for testing
     async fn pledge_sector(&self) -> Result<()> {
@@ -91,10 +86,7 @@ pub trait StorageMinerApi: RpcClient {
     async fn market_import_deal_data(&self, prop_cid: &Cid, path: &str) -> Result<()> {
         self.request(
             "MarketImportDealData",
-            vec![
-                helper::serialize_with(cid_json::serialize, prop_cid),
-                helper::serialize(&path),
-            ],
+            vec![helper::serialize(prop_cid), helper::serialize(&path)],
         )
         .await
     }
@@ -117,10 +109,7 @@ pub trait StorageMinerApi: RpcClient {
     async fn deals_import_data(&self, deal_prop_cid: &Cid, file: &str) -> Result<()> {
         self.request(
             "DealsImportData",
-            vec![
-                helper::serialize_with(cid_json::serialize, deal_prop_cid),
-                helper::serialize(&file),
-            ],
+            vec![helper::serialize(deal_prop_cid), helper::serialize(&file)],
         )
         .await
     }

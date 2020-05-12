@@ -3,8 +3,8 @@
 use anyhow::Result;
 use cid::Cid;
 use filecoin_proofs_api::{PieceInfo, RegisteredSealProof, UnpaddedBytesAmount};
-use plum_actor::abi::{piece, sector};
-use plum_types::SectorNumber;
+use plum_sector::{SectorNumber, SectorInfo, PoStProof, WinningPoStVerifyInfo};
+use plum_types::Randomness;
 use std::io::{Read, Seek, Write};
 
 pub trait Interface {
@@ -23,25 +23,25 @@ pub trait Interface {
     fn seal_pre_commit(
         &self,
         number: SectorNumber,
-        ticket: sector::Randomness,
-        pieces: piece::PieceInfo,
+        ticket: Randomness,
+        pieces: plum_piece::PieceInfo,
     ) -> Result<(Cid, Cid)>;
 
     fn seal_commit(
         &self,
         number: SectorNumber,
-        ticket: sector::Randomness,
-        seed: sector::Randomness,
-        pieces: &[piece::PieceInfo],
+        ticket: Randomness,
+        seed: Randomness,
+        pieces: &[plum_piece::PieceInfo],
         sealed_cid: Cid,
         unsealed_cid: Cid,
-    ) -> Result<(sector::PoStProof)>;
+    ) -> Result<(PoStProof)>;
 
     fn compute_election_post(
-        sector_info: sector::SectorInfo,
-        challengeSeed: sector::Randomness,
-        winners: &[sector::PoStCandidate],
-    ) -> Result<sector::PoStProof>;
+        sector_info: SectorInfo,
+        challengeSeed: Randomness,
+        winners: &[WinningPoStVerifyInfo],
+    ) -> Result<PoStProof>;
 
     fn finalize_sector(&self, number: SectorNumber);
 

@@ -4,13 +4,13 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use cid::{ipld_dag_json as cid_json, Cid};
-use plum_address::{address_json, Address};
+use cid::Cid;
+use plum_address::Address;
 use plum_bigint::{bigint_json, BigInt};
-use plum_message::{message_receipt_json, unsigned_message_json, MessageReceipt, UnsignedMessage};
-use plum_tipset::{tipset_json, tipset_key_json, Tipset, TipsetKey};
+use plum_message::{MessageReceipt, UnsignedMessage};
+use plum_tipset::{Tipset, TipsetKey};
 use plum_types::Actor;
-use plum_vm::{execution_result_json, ExecutionResult};
+use plum_vm::ExecutionResult;
 
 use crate::client::RpcClient;
 use crate::errors::Result;
@@ -23,10 +23,7 @@ pub trait StateApi: RpcClient {
     async fn state_call(&self, msg: &UnsignedMessage, key: &TipsetKey) -> Result<InvocResult> {
         self.request(
             "StateCall",
-            vec![
-                helper::serialize_with(unsigned_message_json::serialize, msg),
-                helper::serialize_with(tipset_key_json::serialize, key),
-            ],
+            vec![helper::serialize(msg), helper::serialize(key)],
         )
         .await
     }
@@ -34,25 +31,17 @@ pub trait StateApi: RpcClient {
     async fn state_replay(&self, key: &TipsetKey, cid: &Cid) -> Result<InvocResult> {
         self.request(
             "StateReplay",
-            vec![
-                helper::serialize_with(tipset_key_json::serialize, key),
-                helper::serialize_with(cid_json::serialize, cid),
-            ],
+            vec![helper::serialize(key), helper::serialize(cid)],
         )
         .await
     }
     ///
     async fn state_get_actor(&self, addr: &Address, key: &TipsetKey) -> Result<Actor> {
-        let actor: helper::Actor = self
-            .request(
-                "StateGetActor",
-                vec![
-                    helper::serialize_with(address_json::serialize, addr),
-                    helper::serialize_with(tipset_key_json::serialize, key),
-                ],
-            )
-            .await?;
-        Ok(actor.0)
+        self.request(
+            "StateGetActor",
+            vec![helper::serialize(addr), helper::serialize(key)],
+        )
+        .await
     }
     /*
     ///
@@ -65,17 +54,15 @@ pub trait StateApi: RpcClient {
         key: &TipsetKey,
         height: u64,
     ) -> Result<Vec<Cid>> {
-        let cids: Vec<helper::Cid> = self
-            .request(
-                "StateListMessages",
-                vec![
-                    helper::serialize_with(unsigned_message_json::serialize, msg),
-                    helper::serialize_with(tipset_key_json::serialize, key),
-                    helper::serialize(&height),
-                ],
-            )
-            .await?;
-        Ok(cids.into_iter().map(|cid| cid.0).collect())
+        self.request(
+            "StateListMessages",
+            vec![
+                helper::serialize(msg),
+                helper::serialize(key),
+                helper::serialize(&height),
+            ],
+        )
+        .await
     }
 
     ///
@@ -155,10 +142,7 @@ pub trait StateApi: RpcClient {
     async fn state_miner_faults(&self, addr: &Address, key: &TipsetKey) -> Result<Vec<u64>> {
         self.request(
             "StateMinerFaults",
-            vec![
-                helper::serialize_with(address_json::serialize, addr),
-                helper::serialize_with(tipset_key_json::serialize, key),
-            ],
+            vec![helper::serialize(addr), helper::serialize(key)],
         )
         .await
     }
@@ -173,9 +157,9 @@ pub trait StateApi: RpcClient {
             .request(
                 "StateMinerInitialPledgeCollateral",
                 vec![
-                    helper::serialize_with(address_json::serialize, addr),
+                    helper::serialize(addr),
                     helper::serialize(&sector_number),
-                    helper::serialize_with(tipset_key_json::serialize, key),
+                    helper::serialize(key),
                 ],
             )
             .await?;
@@ -190,10 +174,7 @@ pub trait StateApi: RpcClient {
         let bigint: helper::BigInt = self
             .request(
                 "StateMinerAvailableBalance",
-                vec![
-                    helper::serialize_with(address_json::serialize, addr),
-                    helper::serialize_with(tipset_key_json::serialize, key),
-                ],
+                vec![helper::serialize(addr), helper::serialize(key)],
             )
             .await?;
         Ok(bigint.0)
@@ -222,54 +203,36 @@ pub trait StateApi: RpcClient {
     ///
     async fn state_pledge_collateral(&self, key: &TipsetKey) -> Result<BigInt> {
         let bigint: helper::BigInt = self
-            .request(
-                "StatePledgeCollateral",
-                vec![helper::serialize_with(tipset_key_json::serialize, key)],
-            )
+            .request("StatePledgeCollateral", vec![helper::serialize(key)])
             .await?;
         Ok(bigint.0)
     }
     ///
     async fn state_wait_msg(&self, cid: &Cid) -> Result<MsgLookup> {
-        self.request(
-            "StateWaitMsg",
-            vec![helper::serialize_with(cid_json::serialize, cid)],
-        )
-        .await
+        self.request("StateWaitMsg", vec![helper::serialize(cid)])
+            .await
     }
     ///
     async fn state_search_msg(&self, cid: &Cid) -> Result<MsgLookup> {
-        self.request(
-            "StateSearchMsg",
-            vec![helper::serialize_with(cid_json::serialize, cid)],
-        )
-        .await
+        self.request("StateSearchMsg", vec![helper::serialize(cid)])
+            .await
     }
     ///
     async fn state_list_miners(&self, key: &TipsetKey) -> Result<Vec<Address>> {
-        self.request(
-            "StateListMiners",
-            vec![helper::serialize_with(tipset_key_json::serialize, key)],
-        )
-        .await
+        self.request("StateListMiners", vec![helper::serialize(key)])
+            .await
     }
     ///
     async fn state_list_actors(&self, key: &TipsetKey) -> Result<Vec<Address>> {
-        self.request(
-            "StateListActors",
-            vec![helper::serialize_with(tipset_key_json::serialize, key)],
-        )
-        .await
+        self.request("StateListActors", vec![helper::serialize(key)])
+            .await
     }
 
     ///
     async fn state_market_balance(&self, addr: &Address, key: &TipsetKey) -> Result<MarketBalance> {
         self.request(
             "StateMarketBalance",
-            vec![
-                helper::serialize_with(address_json::serialize, addr),
-                helper::serialize_with(tipset_key_json::serialize, key),
-            ],
+            vec![helper::serialize(addr), helper::serialize(key)],
         )
         .await
     }
@@ -278,11 +241,8 @@ pub trait StateApi: RpcClient {
         &self,
         key: &TipsetKey,
     ) -> Result<HashMap<String, MarketBalance>> {
-        self.request(
-            "StateMarketParticipants",
-            vec![helper::serialize_with(tipset_key_json::serialize, key)],
-        )
-        .await
+        self.request("StateMarketParticipants", vec![helper::serialize(key)])
+            .await
     }
     /*
     ///
@@ -305,55 +265,35 @@ pub trait StateApi: RpcClient {
     */
     ///
     async fn state_lookup_id(&self, addr: &Address, key: &TipsetKey) -> Result<Address> {
-        let address: helper::Address = self
-            .request(
-                "StateLookupID",
-                vec![
-                    helper::serialize_with(address_json::serialize, addr),
-                    helper::serialize_with(tipset_key_json::serialize, key),
-                ],
-            )
-            .await?;
-        Ok(address.0)
+        self.request(
+            "StateLookupID",
+            vec![helper::serialize(addr), helper::serialize(key)],
+        )
+        .await
     }
     ///
     async fn state_account_key(&self, addr: &Address, key: &TipsetKey) -> Result<Address> {
-        let address: helper::Address = self
-            .request(
-                "StateAccountKey",
-                vec![
-                    helper::serialize_with(address_json::serialize, addr),
-                    helper::serialize_with(tipset_key_json::serialize, key),
-                ],
-            )
-            .await?;
-        Ok(address.0)
+        self.request(
+            "StateAccountKey",
+            vec![helper::serialize(addr), helper::serialize(key)],
+        )
+        .await
     }
     ///
     async fn state_changed_actors(&self, old: &Cid, new: &Cid) -> Result<HashMap<String, Actor>> {
-        let map: HashMap<String, helper::Actor> = self
-            .request(
-                "StateChangedActors",
-                vec![
-                    helper::serialize_with(cid_json::serialize, old),
-                    helper::serialize_with(cid_json::serialize, new),
-                ],
-            )
-            .await?;
-        Ok(map.into_iter().map(|(k, v)| (k, v.0)).collect())
+        self.request(
+            "StateChangedActors",
+            vec![helper::serialize(old), helper::serialize(new)],
+        )
+        .await
     }
     ///
     async fn state_get_receipt(&self, cid: &Cid, key: &TipsetKey) -> Result<MessageReceipt> {
-        let msg_receipt: helper::MessageReceipt = self
-            .request(
-                "StateGetReceipt",
-                vec![
-                    helper::serialize_with(cid_json::serialize, cid),
-                    helper::serialize_with(tipset_key_json::serialize, key),
-                ],
-            )
-            .await?;
-        Ok(msg_receipt.0)
+        self.request(
+            "StateGetReceipt",
+            vec![helper::serialize(cid), helper::serialize(key)],
+        )
+        .await
     }
     ///
     async fn state_miner_sector_count(
@@ -363,10 +303,7 @@ pub trait StateApi: RpcClient {
     ) -> Result<MinerSectors> {
         self.request(
             "StateMinerSectorCount",
-            vec![
-                helper::serialize_with(address_json::serialize, addr),
-                helper::serialize_with(tipset_key_json::serialize, key),
-            ],
+            vec![helper::serialize(addr), helper::serialize(key)],
         )
         .await
     }
@@ -377,17 +314,12 @@ pub trait StateApi: RpcClient {
         msgs: &[UnsignedMessage],
         key: &TipsetKey,
     ) -> Result<ComputeStateOutput> {
-        let msgs = msgs
-            .iter()
-            .cloned()
-            .map(helper::UnsignedMessage)
-            .collect::<Vec<_>>();
         self.request(
             "StateCompute",
             vec![
                 helper::serialize(&height),
                 helper::serialize(&msgs),
-                helper::serialize_with(tipset_key_json::serialize, key),
+                helper::serialize(key),
             ],
         )
         .await
@@ -398,10 +330,7 @@ pub trait StateApi: RpcClient {
         let bigint: helper::BigInt = self
             .request(
                 "MsigGetAvailableBalance",
-                vec![
-                    helper::serialize_with(address_json::serialize, addr),
-                    helper::serialize_with(tipset_key_json::serialize, key),
-                ],
+                vec![helper::serialize(addr), helper::serialize(key)],
             )
             .await?;
         Ok(bigint.0)
@@ -418,10 +347,8 @@ pub struct MinerSectors {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct MsgLookup {
-    #[serde(with = "message_receipt_json")]
     pub receipt: MessageReceipt,
     #[serde(rename = "TipSet")]
-    #[serde(with = "tipset_json")]
     pub tipset: Tipset,
 }
 
@@ -437,11 +364,8 @@ pub struct MarketBalance {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct InvocResult {
-    #[serde(with = "unsigned_message_json")]
     pub msg: UnsignedMessage,
-    #[serde(with = "message_receipt_json")]
     pub msg_rct: MessageReceipt,
-    #[serde(with = "execution_result_json::vec")]
     pub internal_executions: Vec<ExecutionResult>,
     pub error: String,
     pub duration: i64,
@@ -450,7 +374,6 @@ pub struct InvocResult {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct ComputeStateOutput {
-    #[serde(with = "cid_json")]
     pub root: Cid,
     pub trace: Vec<InvocResult>,
 }

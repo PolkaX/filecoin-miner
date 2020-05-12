@@ -99,7 +99,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "base64 0.12.0",
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "jsonrpc-client",
  "libp2p-core 0.17.1",
  "log",
@@ -464,6 +464,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "block-format"
+version = "0.1.0"
+source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#42cfb2bca4ac6695813a6a01b124ce5bc7bbf118"
+dependencies = [
+ "bytes 0.5.4",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "multihash 0.11.1",
+ "thiserror",
+]
+
+[[package]]
 name = "block-modes"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -484,14 +495,14 @@ dependencies = [
 
 [[package]]
 name = "bls-signatures"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42d37fd3ed8ce37c9d6ffac5570c83c2a5935661b7e6e7ad08099d678ac74f7e"
+checksum = "e31c26c4f3d0de9a7bcec4949e9f6dc16ab1262ded21e530ac4501e03926eff5"
 dependencies = [
  "fff",
  "groupy",
  "hkdf",
- "paired 0.18.0",
+ "paired 0.19.1",
  "rand_core 0.5.1",
  "rayon",
  "sha2ni",
@@ -564,9 +575,6 @@ name = "bytes"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "130aac562c0dd69c56b3b1cc8ffd2e17be31d0b6c25b61c96b76231aa23e39e1"
-dependencies = [
- "serde 1.0.106",
-]
 
 [[package]]
 name = "bytevec"
@@ -617,24 +625,23 @@ dependencies = [
 
 [[package]]
 name = "cid"
-version = "0.4.0"
-source = "git+https://github.com/PolkaX/rust-cid?branch=impl-serde#347e0f910454bf0148a6143ba7f760f62b6d72f3"
+version = "0.5.0"
+source = "git+https://github.com/PolkaX/rust-cid?branch=impl-cbor-and-json#49e2cd8bcbe3ed110adf8a0229e688a59346ed9a"
 dependencies = [
+ "minicbor",
  "multibase",
- "multihash",
+ "multihash 0.11.1",
  "serde 1.0.106",
- "serde_bytes",
- "serde_cbor 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json",
  "unsigned-varint 0.3.2",
 ]
 
 [[package]]
 name = "cid"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b08bd59ac7b32410f32cb71c027c454e61c7826d166e281866560106f4a55956"
-replace = "cid 0.4.0 (git+https://github.com/PolkaX/rust-cid?branch=impl-serde)"
+checksum = "50720fbd95ce5d9e51b6b81b7e4f5f93efdefb4b83aa46200dfc9fdfcd84b379"
+replace = "cid 0.5.0 (git+https://github.com/PolkaX/rust-cid?branch=impl-cbor-and-json)"
 
 [[package]]
 name = "cl-sys"
@@ -699,14 +706,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ddfc5b9aa5d4507acaf872de71051dfd0e309860e88966e1051e462a077aac4f"
 dependencies = [
  "bitflags",
-]
-
-[[package]]
-name = "codec-rle"
-version = "0.1.0"
-dependencies = [
- "num 0.2.1",
- "thiserror",
 ]
 
 [[package]]
@@ -1013,6 +1012,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "datastore"
+version = "0.1.0"
+source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#42cfb2bca4ac6695813a6a01b124ce5bc7bbf118"
+dependencies = [
+ "parking_lot 0.10.2",
+ "path-clean",
+ "serde 1.0.106",
+ "thiserror",
+ "uuid 0.8.1",
+]
+
+[[package]]
 name = "dialoguer"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1071,6 +1082,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ds-rocksdb"
+version = "0.1.0"
+source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#42cfb2bca4ac6695813a6a01b124ce5bc7bbf118"
+dependencies = [
+ "datastore",
+ "kvdb",
+ "kvdb-rocksdb",
+ "thiserror",
+]
+
+[[package]]
 name = "dtoa"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1093,9 +1115,6 @@ name = "either"
 version = "1.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bb1f6b1ce1c140482ea30ddd3335fc0024ac7ee112895426e0a629a6c20adfe3"
-dependencies = [
- "serde 1.0.106",
-]
 
 [[package]]
 name = "encode_unicode"
@@ -1110,18 +1129,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd8d03faa7fe0c1431609dfad7bbe827af30f82e1e2ae6f7ee4fca6bd764bc28"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "enum-repr-derive"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb1ede475cee621126a0735a3c8d67e518cf9936bf06443d2bef6ae56666ab0c"
-dependencies = [
- "proc-macro-error 0.4.12",
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -1171,6 +1178,7 @@ version = "0.1.0"
 dependencies = [
  "api",
  "async-std",
+ "futures 0.3.4",
  "log",
  "plum_params",
  "plum_tipset",
@@ -1265,7 +1273,7 @@ dependencies = [
  "cl-sys",
  "enum_primitive",
  "failure",
- "num-complex 0.1.43",
+ "num-complex",
  "num-traits 0.2.11",
  "ocl-core-vector",
  "rustc_version 0.1.7",
@@ -1440,6 +1448,16 @@ name = "foreign-types-shared"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
+
+[[package]]
+name = "fs-lock"
+version = "0.1.0"
+source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#42cfb2bca4ac6695813a6a01b124ce5bc7bbf118"
+dependencies = [
+ "fs2",
+ "lazy_static 1.4.0",
+ "log",
+]
 
 [[package]]
 name = "fs-swap"
@@ -1635,6 +1653,7 @@ dependencies = [
  "api",
  "plum_address",
  "plum_bigint",
+ "plum_block",
  "plum_crypto",
  "plum_hashing",
  "plum_tipset",
@@ -2102,7 +2121,7 @@ dependencies = [
 [[package]]
 name = "kvdb"
 version = "0.4.0"
-source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#430294308a72255edfbfca155282a7ed43c459f7"
+source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#42cfb2bca4ac6695813a6a01b124ce5bc7bbf118"
 dependencies = [
  "lazy_static 1.4.0",
  "smallvec 1.3.0",
@@ -2111,7 +2130,7 @@ dependencies = [
 [[package]]
 name = "kvdb-rocksdb"
 version = "0.5.0"
-source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#430294308a72255edfbfca155282a7ed43c459f7"
+source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#42cfb2bca4ac6695813a6a01b124ce5bc7bbf118"
 dependencies = [
  "fs-swap",
  "interleaved-ordered",
@@ -2251,7 +2270,7 @@ dependencies = [
  "lazy_static 1.4.0",
  "libsecp256k1",
  "log",
- "multihash",
+ "multihash 0.10.1",
  "multistream-select 0.8.0",
  "parity-multiaddr 0.8.0",
  "parking_lot 0.10.2",
@@ -2762,9 +2781,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "api",
+ "block-format",
  "bytes 0.5.4",
  "chrono",
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "gen",
  "log",
  "lru 0.4.3",
@@ -2774,11 +2794,15 @@ dependencies = [
  "plum_crypto",
  "plum_message",
  "plum_tipset",
- "rust-block-format",
  "serde 1.0.106",
- "serde_cbor 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "thiserror",
 ]
+
+[[package]]
+name = "minicbor"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4709adb7e85ffb3844afb66f0d50ebd0336e7699445b5815b3a74ccf42efc15a"
 
 [[package]]
 name = "miniz_oxide"
@@ -2847,6 +2871,21 @@ name = "multihash"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "47fbc227f7e2b1cb701f95404579ecb2668abbdd3c7ef7a6cbb3cc0d3b236869"
+dependencies = [
+ "blake2b_simd",
+ "blake2s_simd",
+ "digest",
+ "sha-1",
+ "sha2",
+ "sha3",
+ "unsigned-varint 0.3.2",
+]
+
+[[package]]
+name = "multihash"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ae32179a9904ccc6e063de8beee7f5dd55fae85ecb851ca923d55722bc28cf5d"
 dependencies = [
  "blake2b_simd",
  "blake2s_simd",
@@ -3032,24 +3071,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4703ad64153382334aa8db57c637364c322d3372e097840c72000dabdcf6156e"
 dependencies = [
  "num-bigint 0.1.44",
- "num-complex 0.1.43",
+ "num-complex",
  "num-integer",
  "num-iter",
- "num-rational 0.1.42",
- "num-traits 0.2.11",
-]
-
-[[package]]
-name = "num"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8536030f9fea7127f841b45bb6243b27255787fb4eb83958aa1ef9d2fdc0c36"
-dependencies = [
- "num-bigint 0.2.6",
- "num-complex 0.2.4",
- "num-integer",
- "num-iter",
- "num-rational 0.2.4",
+ "num-rational",
  "num-traits 0.2.11",
 ]
 
@@ -3087,16 +3112,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "num-complex"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6b19411a9719e753aff12e5187b74d60d3dc449ec3f4dc21e3989c3f554bc95"
-dependencies = [
- "autocfg 1.0.0",
- "num-traits 0.2.11",
-]
-
-[[package]]
 name = "num-integer"
 version = "0.1.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3127,18 +3142,6 @@ dependencies = [
  "num-integer",
  "num-traits 0.2.11",
  "rustc-serialize",
-]
-
-[[package]]
-name = "num-rational"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c000134b5dbf44adc5cb772486d335293351644b801551abe8f75c84cfa4aef"
-dependencies = [
- "autocfg 1.0.0",
- "num-bigint 0.2.6",
- "num-integer",
- "num-traits 0.2.11",
 ]
 
 [[package]]
@@ -3181,7 +3184,7 @@ version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4072920739958adeec5abedec51af70febc58f7fff0601aaa0827c1f3c8fefd"
 dependencies = [
- "num 0.1.42",
+ "num",
 ]
 
 [[package]]
@@ -3306,6 +3309,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "paired"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "efe11378490fac22e42b50f98d5d9d8ba88d49921e32863b46a1ba0a04b5314c"
+dependencies = [
+ "blake2b_simd",
+ "byteorder 1.3.4",
+ "digest",
+ "fff",
+ "groupy",
+ "hkdf",
+ "rand_core 0.5.1",
+]
+
+[[package]]
 name = "parity-multiaddr"
 version = "0.6.0"
 source = "git+https://github.com/SigP/rust-libp2p?rev=776d13ef046358964c7d64cda3295a3a3cb24743#776d13ef046358964c7d64cda3295a3a3cb24743"
@@ -3332,7 +3350,7 @@ dependencies = [
  "bs58 0.3.0",
  "byteorder 1.3.4",
  "data-encoding",
- "multihash",
+ "multihash 0.10.1",
  "percent-encoding 2.1.0",
  "serde 1.0.106",
  "static_assertions",
@@ -3515,36 +3533,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05da548ad6865900e60eaba7f589cc0783590a92e940c26953ff81ddbab2d677"
 
 [[package]]
-name = "plum_actor"
-version = "0.1.0"
-dependencies = [
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "codec-rle",
- "enum-repr-derive",
- "multihash",
- "plum_address",
- "plum_bigint",
- "plum_crypto",
- "plum_hash",
- "plum_types",
- "rust-ipld-cbor",
- "serde 1.0.106",
- "serde_bytes",
- "serde_cbor 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_repr",
- "serde_tuple",
- "thiserror",
-]
-
-[[package]]
 name = "plum_address"
 version = "0.1.0"
 dependencies = [
  "data-encoding",
  "lazy_static 1.4.0",
+ "minicbor",
  "plum_hashing",
  "serde 1.0.106",
- "serde_bytes",
  "thiserror",
  "unsigned-varint 0.3.2",
 ]
@@ -3553,28 +3549,36 @@ dependencies = [
 name = "plum_bigint"
 version = "0.1.0"
 dependencies = [
+ "minicbor",
  "num-bigint 0.2.6",
  "num-traits 0.2.11",
  "serde 1.0.106",
- "serde_bytes",
 ]
 
 [[package]]
 name = "plum_block"
 version = "0.1.0"
 dependencies = [
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "multihash",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minicbor",
+ "multihash 0.11.1",
  "plum_address",
  "plum_bigint",
+ "plum_bytes",
  "plum_crypto",
  "plum_message",
- "plum_types",
  "serde 1.0.106",
- "serde_bytes",
- "serde_cbor 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json",
  "serde_repr",
+]
+
+[[package]]
+name = "plum_bytes"
+version = "0.1.0"
+dependencies = [
+ "base64 0.12.0",
+ "minicbor",
+ "serde 1.0.106",
 ]
 
 [[package]]
@@ -3583,12 +3587,12 @@ version = "0.1.0"
 dependencies = [
  "bls-signatures",
  "libsecp256k1",
+ "minicbor",
  "plum_address",
+ "plum_bytes",
  "plum_hashing",
- "plum_types",
  "rand 0.7.3",
  "serde 1.0.106",
- "serde_bytes",
  "thiserror",
 ]
 
@@ -3597,8 +3601,9 @@ name = "plum_hash"
 version = "0.1.0"
 dependencies = [
  "fixed-hash",
+ "minicbor",
+ "plum_bytes",
  "serde 1.0.106",
- "serde_bytes",
 ]
 
 [[package]]
@@ -3617,15 +3622,15 @@ dependencies = [
 name = "plum_libp2p"
 version = "0.1.0"
 dependencies = [
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "fnv",
  "futures 0.1.29",
  "libp2p",
  "log",
- "multihash",
+ "multihash 0.11.1",
  "serde 1.0.106",
  "serde_bytes",
- "serde_cbor 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "serde_cbor 0.11.1",
  "smallvec 1.3.0",
  "tokio 0.1.22",
  "tokio-io-timeout",
@@ -3636,29 +3641,52 @@ dependencies = [
 name = "plum_message"
 version = "0.1.0"
 dependencies = [
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "multihash",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minicbor",
+ "multihash 0.11.1",
  "plum_address",
  "plum_bigint",
+ "plum_bytes",
  "plum_crypto",
- "plum_types",
  "serde 1.0.106",
- "serde_bytes",
- "serde_cbor 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "plum_params"
 version = "0.1.0"
 dependencies = [
+ "plum_sector",
+]
+
+[[package]]
+name = "plum_piece"
+version = "0.1.0"
+dependencies = [
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minicbor",
+ "serde 1.0.106",
+ "thiserror",
+]
+
+[[package]]
+name = "plum_sector"
+version = "0.1.0"
+dependencies = [
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minicbor",
+ "plum_bigint",
+ "plum_bytes",
  "plum_types",
+ "serde 1.0.106",
+ "serde_repr",
 ]
 
 [[package]]
 name = "plum_tipset"
 version = "0.1.0"
 dependencies = [
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "minicbor",
  "plum_bigint",
  "plum_block",
  "serde 1.0.106",
@@ -3669,8 +3697,9 @@ dependencies = [
 name = "plum_types"
 version = "0.1.0"
 dependencies = [
- "base64 0.12.0",
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "lazy_static 1.4.0",
+ "minicbor",
  "plum_bigint",
  "plum_hash",
  "serde 1.0.106",
@@ -3692,8 +3721,8 @@ dependencies = [
  "libsecp256k1",
  "parking_lot 0.10.2",
  "plum_address",
+ "plum_bytes",
  "plum_crypto",
- "plum_types",
  "rand 0.7.3",
  "serde 1.0.106",
  "serde_json",
@@ -3732,40 +3761,14 @@ dependencies = [
 
 [[package]]
 name = "proc-macro-error"
-version = "0.4.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18f33027081eba0a6d8aba6d1b1c3a3be58cbb12106341c2d5759fcd9b5277e7"
-dependencies = [
- "proc-macro-error-attr 0.4.12",
- "proc-macro2",
- "quote",
- "syn",
- "version_check 0.9.1",
-]
-
-[[package]]
-name = "proc-macro-error"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98e9e4b82e0ef281812565ea4751049f1bdcdfccda7d3f459f2e138a40c08678"
 dependencies = [
- "proc-macro-error-attr 1.0.2",
+ "proc-macro-error-attr",
  "proc-macro2",
  "quote",
  "syn",
- "version_check 0.9.1",
-]
-
-[[package]]
-name = "proc-macro-error-attr"
-version = "0.4.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a5b4b77fdb63c1eca72173d68d24501c54ab1269409f6b672c85deb18af69de"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "syn-mid",
  "version_check 0.9.1",
 ]
 
@@ -4184,14 +4187,14 @@ dependencies = [
 name = "repo"
 version = "0.1.0"
 dependencies = [
+ "datastore",
+ "ds-rocksdb",
+ "fs-lock",
  "log",
  "node-config",
  "node-utils",
  "plum_libp2p",
  "plum_wallet",
- "rust-datastore",
- "rust-ds-rocksdb",
- "rust-fs-lock",
  "serde_json",
 ]
 
@@ -4303,93 +4306,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust-block-format"
-version = "0.1.0"
-source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#430294308a72255edfbfca155282a7ed43c459f7"
-dependencies = [
- "bytes 0.5.4",
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "multihash",
- "thiserror",
-]
-
-[[package]]
-name = "rust-datastore"
-version = "0.1.0"
-source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#430294308a72255edfbfca155282a7ed43c459f7"
-dependencies = [
- "parking_lot 0.10.2",
- "path-clean",
- "serde 1.0.106",
- "thiserror",
- "uuid 0.8.1",
-]
-
-[[package]]
-name = "rust-ds-rocksdb"
-version = "0.1.0"
-source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#430294308a72255edfbfca155282a7ed43c459f7"
-dependencies = [
- "kvdb",
- "kvdb-rocksdb",
- "rust-datastore",
- "thiserror",
-]
-
-[[package]]
-name = "rust-fs-lock"
-version = "0.1.0"
-source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#430294308a72255edfbfca155282a7ed43c459f7"
-dependencies = [
- "fs2",
- "lazy_static 1.4.0",
- "log",
-]
-
-[[package]]
 name = "rust-ini"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e52c148ef37f8c375d49d5a73aa70713125b7f19095948a923f80afdeb22ec2"
 
 [[package]]
-name = "rust-ipld-cbor"
-version = "0.1.0"
-source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#430294308a72255edfbfca155282a7ed43c459f7"
-dependencies = [
- "bytes 0.5.4",
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "either",
- "multihash",
- "rust-block-format",
- "rust-ipld-format",
- "serde 1.0.106",
- "serde_bytes",
- "serde_cbor 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "rust-ipld-format"
-version = "0.1.0"
-source = "git+https://github.com/PolkaX/rust-ipfs?branch=filecoin-master#430294308a72255edfbfca155282a7ed43c459f7"
-dependencies = [
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "lazy_static 1.4.0",
- "multihash",
- "rust-block-format",
- "thiserror",
-]
-
-[[package]]
 name = "rust-statemachine"
 version = "0.1.0"
 dependencies = [
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "crossbeam",
  "filecoin-proofs-api",
- "multihash",
+ "multihash 0.11.1",
 ]
 
 [[package]]
@@ -4504,10 +4433,10 @@ dependencies = [
 name = "seal-seed"
 version = "0.1.0"
 dependencies = [
+ "ds-rocksdb",
  "plum_address",
  "plum_wallet",
  "repo",
- "rust-ds-rocksdb",
  "sectorbuilder",
  "utils",
 ]
@@ -4539,16 +4468,17 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytevec",
- "cid 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cid 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "datastore",
  "filecoin-proofs-api",
  "libc",
  "paired 0.18.0",
- "plum_actor",
  "plum_address",
+ "plum_piece",
+ "plum_sector",
  "plum_types",
  "rand 0.7.3",
  "rand_xorshift 0.2.0",
- "rust-datastore",
  "serde 1.0.106",
  "tempfile",
  "thiserror",
@@ -4655,18 +4585,12 @@ dependencies = [
 [[package]]
 name = "serde_cbor"
 version = "0.11.1"
-source = "git+https://github.com/PolkaX/cbor?branch=f64ser-hack#5b2fffab3709d13f4753288d599628ff636b2886"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e18acfa2f90e8b735b2836ab8d538de304cbb6729a7360729ea5a895d15a622"
 dependencies = [
  "half",
  "serde 1.0.106",
 ]
-
-[[package]]
-name = "serde_cbor"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e18acfa2f90e8b735b2836ab8d538de304cbb6729a7360729ea5a895d15a622"
-replace = "serde_cbor 0.11.1 (git+https://github.com/PolkaX/cbor?branch=f64ser-hack)"
 
 [[package]]
 name = "serde_derive"
@@ -4708,18 +4632,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "110b3dbdf8607ec493c22d5d947753282f3bae73c0f56d322af1e8c78e4c23d5"
 dependencies = [
  "serde 0.8.23",
-]
-
-[[package]]
-name = "serde_tuple"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04930140ce7febaa5fd80ccb0d7a5a20e951210f69817359e1b552b3930d0a1d"
-dependencies = [
- "proc-macro2",
- "quote",
- "serde 1.0.106",
- "syn",
 ]
 
 [[package]]
@@ -4933,7 +4845,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-std",
+ "datastore",
  "dirs",
+ "ds-rocksdb",
  "exit-future",
  "futures 0.3.4",
  "futures-diagnose",
@@ -4944,8 +4858,6 @@ dependencies = [
  "node-utils",
  "plum_address",
  "repo",
- "rust-datastore",
- "rust-ds-rocksdb",
  "sectorbuilder",
  "serde_json",
  "structopt",
@@ -5059,8 +4971,8 @@ dependencies = [
  "bitmask",
  "lazy_static 1.4.0",
  "log",
- "plum_actor",
  "plum_bigint",
+ "plum_sector",
  "plum_types",
  "regex",
  "thiserror",
@@ -5110,7 +5022,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a489c87c08fbaf12e386665109dd13470dcc9c4583ea3e10dd2b4523e5ebd9ac"
 dependencies = [
  "heck",
- "proc-macro-error 1.0.2",
+ "proc-macro-error",
  "proc-macro2",
  "quote",
  "syn",

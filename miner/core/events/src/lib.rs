@@ -8,7 +8,8 @@ use std::time::Duration;
 
 use plum_tipset::{Tipset, TipsetKey};
 
-use api::{ChainApi, HeadChangeType};
+use api::{ChainApi, HeadChangeType, HeadChange};
+use futures::stream::StreamExt;
 use async_std::task::sleep;
 
 use crate::error::*;
@@ -234,11 +235,11 @@ async fn listen_head_changes_once<Api: ChainApi>(
     api: Arc<Api>,
     event: Arc<RwLock<Events>>,
 ) -> Result<()> {
-    let mut notify = api
+    let (_subscription_id, mut notify) = api
         .chain_notify()
         .await
         .map_err(|e| EventsError::Other(Box::new(e)))?;
-    let mut current = notify.next().await;
+    let mut current: Vec<HeadChange> = notify.next().await.unwrap();
     if current.len() != 1 {
         return Err(EventsError::UnexpectedInitial(current.len()));
     }
@@ -259,7 +260,7 @@ async fn listen_head_changes_once<Api: ChainApi>(
     }
 
     #[allow(irrefutable_let_patterns)]
-    while let head_change = notify.next().await {
+    while let Some(head_change) = notify.next().await {
         let mut reverts = vec![];
         let mut applies = vec![];
         for notif in head_change {

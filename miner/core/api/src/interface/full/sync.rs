@@ -5,9 +5,9 @@ use serde_repr::{Deserialize_repr, Serialize_repr};
 
 use jsonrpc_client::{NotificationStream, SubscriptionId};
 
-use cid::{ipld_dag_json as cid_json, Cid};
-use plum_block::{block_msg_json, BlockHeader, BlockMsg};
-use plum_tipset::{tipset_json, Tipset};
+use cid::Cid;
+use plum_block::{BlockHeader, BlockMsg};
+use plum_tipset::Tipset;
 
 use crate::client::RpcClient;
 use crate::errors::Result;
@@ -22,11 +22,8 @@ pub trait SyncApi: RpcClient {
     }
     ///
     async fn sync_submit_block(&self, block: &BlockMsg) -> Result<()> {
-        self.request(
-            "SyncSubmitBlock",
-            vec![helper::serialize_with(block_msg_json::serialize, block)],
-        )
-        .await
+        self.request("SyncSubmitBlock", vec![helper::serialize(block)])
+            .await
     }
     ///
     async fn sync_incoming_blocks(
@@ -36,19 +33,13 @@ pub trait SyncApi: RpcClient {
     }
     ///
     async fn sync_mark_bad(&self, bad_cid: &Cid) -> Result<()> {
-        self.request(
-            "SyncMarkBad",
-            vec![helper::serialize_with(cid_json::serialize, bad_cid)],
-        )
-        .await
+        self.request("SyncMarkBad", vec![helper::serialize(bad_cid)])
+            .await
     }
     ///
     async fn sync_check_bad(&self, bad_cid: &Cid) -> Result<String> {
-        self.request(
-            "SyncCheckBad",
-            vec![helper::serialize_with(cid_json::serialize, bad_cid)],
-        )
-        .await
+        self.request("SyncCheckBad", vec![helper::serialize(bad_cid)])
+            .await
     }
 }
 
@@ -65,10 +56,8 @@ pub struct SyncState {
 #[serde(rename_all = "PascalCase")]
 pub struct ActiveSync {
     ///
-    #[serde(with = "tipset_json")]
     pub base: Tipset,
     ///
-    #[serde(with = "tipset_json")]
     pub target: Tipset,
 
     ///

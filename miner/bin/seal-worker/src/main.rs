@@ -2,7 +2,7 @@ mod commands;
 mod error;
 mod worker;
 
-use api::{CommonApi, HttpClient};
+use api::{CommonApi, HttpTransport};
 use commands::{Command, SubCommand};
 use log::info;
 use structopt::StructOpt;
@@ -30,7 +30,7 @@ fn main() {
     match opt.cmd {
         SubCommand::Run(com) => {
             info!("{:?}", com);
-            let storage_api = HttpClient::new("http://127.0.0.1:1234/rpc/v0");
+            let storage_api = HttpTransport::new("http://127.0.0.1:1234/rpc/v0");
             let version = async_std::task::block_on(async { storage_api.version().await.unwrap() });
             info!("version:{:?}", version);
         }

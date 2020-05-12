@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0.23"
-cid = { version = "0.4", features = ["impl-serde"] }
+cid = { version = "0.5", features = ["impl-serde"] }
 libc = "0.2"
 paired = "0.18.0"
 rand = "0.7"
@@ -20,9 +20,10 @@ bytevec = "0.2.0"
 filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api", branch = "master" }
 
 # ipfs
-datastore = { package = "rust-datastore", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+datastore = { git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 
 # plum
 plum_address = { path = "../../../vendor/plum/primitives/address" }
-plum_actor = { path = "../../../vendor/plum/chain/actor" }
+plum_piece = { path = "../../../vendor/plum/primitives/piece" }
+plum_sector = { path = "../../../vendor/plum/primitives/sector" }
 plum_types = { path = "../../../vendor/plum/primitives/types" }

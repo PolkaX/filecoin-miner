@@ -12,4 +12,4 @@ plum_wallet = { path = "../../../vendor/plum/wallet" }
 sectorbuilder = { path = "../../core/sectorbuilder" }
 repo = { path = "../../node/repo" }
 utils = { path = "../../common/utils" }
-ds-rocksdb = { package = "rust-ds-rocksdb", git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
+ds-rocksdb = { git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }

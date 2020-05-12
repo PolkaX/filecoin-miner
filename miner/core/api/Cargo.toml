@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 async-trait = "0.1"
 base64 = "0.12"
-cid = { version = "0.4", features = ["impl-serde"] }
+cid = { version = "0.5", features = ["impl-serde"] }
 libp2p-core = "0.17"
 log = { version = "0.4", features = ["max_level_debug", "release_max_level_info"] }
 jsonrpc-client = { path = "jsonrpc-client" }

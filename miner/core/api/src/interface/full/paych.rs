@@ -3,8 +3,8 @@
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use cid::{ipld_dag_json as cid_json, Cid};
-use plum_address::{address_json, Address};
+use cid::Cid;
+use plum_address::Address;
 use plum_bigint::{bigint_json, BigInt};
 
 use crate::client::RpcClient;
@@ -24,8 +24,8 @@ pub trait PaychApi: RpcClient {
         self.request(
             "PaychGet",
             vec![
-                helper::serialize_with(address_json::serialize, from),
-                helper::serialize_with(address_json::serialize, to),
+                helper::serialize(from),
+                helper::serialize(to),
                 helper::serialize_with(bigint_json::serialize, ensure_funds),
             ],
         )
@@ -33,34 +33,22 @@ pub trait PaychApi: RpcClient {
     }
     ///
     async fn paych_list(&self) -> Result<Vec<Address>> {
-        let addresses: Vec<helper::Address> = self.request("PaychList", vec![]).await?;
-        Ok(addresses.into_iter().map(|address| address.0).collect())
+        self.request("PaychList", vec![]).await
     }
     ///
     async fn paych_status(&self, addr: &Address) -> Result<PaychStatus> {
-        self.request(
-            "PaychStatus",
-            vec![helper::serialize_with(address_json::serialize, addr)],
-        )
-        .await
+        self.request("PaychStatus", vec![helper::serialize(addr)])
+            .await
     }
     ///
     async fn paych_close(&self, addr: &Address) -> Result<Cid> {
-        let cid: helper::Cid = self
-            .request(
-                "PaychClose",
-                vec![helper::serialize_with(address_json::serialize, addr)],
-            )
-            .await?;
-        Ok(cid.0)
+        self.request("PaychClose", vec![helper::serialize(addr)])
+            .await
     }
     ///
     async fn paych_allocate_lane(&self, addr: &Address) -> Result<u64> {
-        self.request(
-            "PaychAllocateLane",
-            vec![helper::serialize_with(address_json::serialize, addr)],
-        )
-        .await
+        self.request("PaychAllocateLane", vec![helper::serialize(addr)])
+            .await
     }
     /*
     ///
@@ -101,16 +89,13 @@ pub trait PaychApi: RpcClient {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct ChannelInfo {
-    #[serde(with = "address_json")]
     pub channel: Address,
-    #[serde(with = "cid_json")]
     pub channel_message: Cid,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct PaychStatus {
-    #[serde(with = "address_json")]
     pub control_addr: Address,
     pub direction: PchDir,
 }

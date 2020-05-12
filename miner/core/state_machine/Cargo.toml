@@ -5,9 +5,9 @@ authors = ["PolkaX <https://github.com/PolkaX>"]
 edition = "2018"
 
 [dependencies]
-cid = { version = "0.4", features = ["impl-serde"] }
+cid = { version = "0.5", features = ["impl-serde"] }
 crossbeam = "0.7"
-multihash = "0.10"
+multihash = "0.11"
 
 # filecoin proof
 filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api", branch = "master" }

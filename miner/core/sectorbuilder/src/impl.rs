@@ -6,8 +6,8 @@ use bytevec::ByteEncodable;
 use cid::Cid;
 use datastore::key::Key;
 use filecoin_proofs_api::{seal::add_piece, PieceInfo, RegisteredSealProof, UnpaddedBytesAmount};
-use plum_actor::abi::{piece, sector};
-use plum_types::SectorNumber;
+use plum_sector::{SectorNumber, PoStProof, SectorInfo, WinningPoStVerifyInfo};
+use plum_types::Randomness;
 use std::io::{Read, Seek, Write};
 
 impl<DS: Batching> Interface for SectorBuilder<DS> {
@@ -29,8 +29,8 @@ impl<DS: Batching> Interface for SectorBuilder<DS> {
     fn seal_pre_commit(
         &self,
         number: SectorNumber,
-        ticket: sector::Randomness,
-        pieces: piece::PieceInfo,
+        ticket: Randomness,
+        pieces: plum_piece::PieceInfo,
     ) -> Result<(Cid, Cid)> {
         bail!("")
     }
@@ -38,20 +38,20 @@ impl<DS: Batching> Interface for SectorBuilder<DS> {
     fn seal_commit(
         &self,
         number: SectorNumber,
-        ticket: sector::Randomness,
-        seed: sector::Randomness,
-        pieces: &[piece::PieceInfo],
+        ticket: Randomness,
+        seed: Randomness,
+        pieces: &[plum_piece::PieceInfo],
         sealed_cid: Cid,
         unsealed_cid: Cid,
-    ) -> Result<(sector::PoStProof)> {
+    ) -> Result<(PoStProof)> {
         bail!("")
     }
 
     fn compute_election_post(
-        sector_info: sector::SectorInfo,
-        challengeSeed: sector::Randomness,
-        winners: &[sector::PoStCandidate],
-    ) -> Result<sector::PoStProof> {
+        sector_info: SectorInfo,
+        challengeSeed: Randomness,
+        winners: &[WinningPoStVerifyInfo],
+    ) -> Result<PoStProof> {
         bail!("")
     }
 

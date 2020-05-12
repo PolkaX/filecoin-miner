@@ -4,8 +4,8 @@ use libp2p_core::PeerId;
 use serde::{Deserialize, Serialize};
 // use serde_repr::{Deserialize_repr, Serialize_repr};
 
-use cid::{ipld_dag_json as cid_json, Cid};
-use plum_address::{address_json, Address};
+use cid::Cid;
+use plum_address::Address;
 use plum_bigint::{bigint_json, BigInt};
 
 use crate::client::RpcClient;
@@ -17,10 +17,8 @@ use crate::helper;
 pub trait ClientApi: RpcClient {
     /// ClientImport imports file under the specified path into filestore
     async fn client_import(&self, r#ref: &FileRef) -> Result<Cid> {
-        let cid: helper::Cid = self
-            .request("ClientImport", vec![helper::serialize(r#ref)])
-            .await?;
-        Ok(cid.0)
+        self.request("ClientImport", vec![helper::serialize(r#ref)])
+            .await
     }
 
     /*
@@ -49,20 +47,14 @@ pub trait ClientApi: RpcClient {
 
     ///
     async fn client_has_local(&self, root: &Cid) -> Result<bool> {
-        self.request(
-            "ClientHasLocal",
-            vec![helper::serialize_with(cid_json::serialize, root)],
-        )
-        .await
+        self.request("ClientHasLocal", vec![helper::serialize(root)])
+            .await
     }
 
     ///
     async fn client_find_data(&self, root: &Cid) -> Result<Vec<QueryOffer>> {
-        self.request(
-            "ClientFindData",
-            vec![helper::serialize_with(cid_json::serialize, root)],
-        )
-        .await
+        self.request("ClientFindData", vec![helper::serialize(root)])
+            .await
     }
 
     ///
@@ -81,10 +73,7 @@ pub trait ClientApi: RpcClient {
     async fn client_calc_comm_p(&self, inpath: &str, miner: &Address) -> Result<CommPRet> {
         self.request(
             "ClientCalcCommP",
-            vec![
-                helper::serialize(&inpath),
-                helper::serialize_with(address_json::serialize, miner),
-            ],
+            vec![helper::serialize(&inpath), helper::serialize(miner)],
         )
         .await
     }
@@ -135,15 +124,12 @@ pub struct Import {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct DealInfo {
-    #[serde(with = "cid_json")]
     pub proposal_cid: Cid,
     // pub state: DealStates,
     pub message: String,
-    #[serde(with = "address_json")]
     pub provider: Address,
 
     #[serde(rename = "PieceCID")]
-    #[serde(with = "cid_json")]
     pub piece_cid: Cid,
     pub size: u64,
 
@@ -174,7 +160,6 @@ pub enum DealStates {
 pub struct QueryOffer {
     pub err: String,
 
-    #[serde(with = "cid_json")]
     pub root: Cid,
 
     pub size: u64,
@@ -182,7 +167,6 @@ pub struct QueryOffer {
     pub min_price: BigInt,
     pub payment_interval: u64,
     pub payment_interval_increase: u64,
-    #[serde(with = "address_json")]
     pub miner: Address,
     #[serde(rename = "MinerPeerID")]
     #[serde(with = "crate::helper::peer_id")]
@@ -209,7 +193,6 @@ impl QueryOffer {
 #[serde(rename_all = "PascalCase")]
 pub struct RetrievalOrder {
     // TODO: make this less unixfs specific
-    #[serde(with = "cid_json")]
     pub root: Cid,
     pub size: u64,
     // TODO: support offset
@@ -219,9 +202,7 @@ pub struct RetrievalOrder {
     pub payment_interval: u64,
     pub payment_interval_increase: u64,
 
-    #[serde(with = "address_json")]
     pub client: Address,
-    #[serde(with = "address_json")]
     pub miner: Address,
     #[serde(rename = "MinerPeerID")]
     #[serde(with = "crate::helper::peer_id")]
@@ -231,7 +212,6 @@ pub struct RetrievalOrder {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
 pub struct CommPRet {
-    #[serde(with = "cid_json")]
     pub root: Cid,
     pub size: u64,
 }
