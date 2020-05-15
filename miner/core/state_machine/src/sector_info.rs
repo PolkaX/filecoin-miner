@@ -1,6 +1,6 @@
 // Copyright 2020 PolkaX
 
-use cid::{Cid, Codec};
+use cid::{Cid, Codec, IntoExt};
 use filecoin_proofs_api::{ChallengeSeed, Commitment, PieceInfo, Ticket};
 
 use crate::SectorState;
@@ -10,7 +10,7 @@ type SealTicket = Ticket;
 type SealSeed = ChallengeSeed;
 
 fn zero_cid() -> Cid {
-    Cid::new_v1(Codec::Raw, multihash::Identity::digest(b""))
+    Cid::new_v1(Codec::Raw, multihash::Identity::digest(b"").into_ext())
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
