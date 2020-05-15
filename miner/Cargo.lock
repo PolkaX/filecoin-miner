@@ -1656,6 +1656,7 @@ dependencies = [
  "plum_block",
  "plum_crypto",
  "plum_hashing",
+ "plum_sector",
  "plum_tipset",
  "sectorbuilder",
 ]

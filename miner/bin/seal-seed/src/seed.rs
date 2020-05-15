@@ -55,9 +55,9 @@ pub fn pre_seal(
             .unwrap()
             .datastore(consts::SECTORBUILDER_SPACE)
             .unwrap();
-        let sb = SectorBuilder::new(&sectorbuilder_config, sectorbuilder_ds);
+        let mut sb = SectorBuilder::new(&sectorbuilder_config, sectorbuilder_ds);
         let size = user_bytes_for_sector_size(ssize);
-        let mut sealed_sectors = Vec::new();
+        // let mut sealed_sectors = Vec::new();
         for i in 0..sectors {
             let sid = sb.acquire_sector_id().unwrap();
         }

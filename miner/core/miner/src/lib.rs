@@ -1,7 +1,8 @@
+/*
 mod error;
 mod utils;
 
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use api::SyncFullNodeApi;
 use gen::ElectionPoStProver;
 use log::{debug, error, info, warn};
@@ -43,6 +44,12 @@ impl MiningBase {
             null_rounds: 0u64,
         }
     }
+}
+
+pub struct BeaconEntry {
+    pub round: u64,
+    pub data: Vec<u8>,
+    pub prev_round: u64,
 }
 
 /// Each miner holds the worker private key to sign the Block without using the API.
@@ -159,11 +166,21 @@ impl<Api: SyncFullNodeApi, E: 'static + ElectionPoStProver> Miner<Api, E> {
 
         let start = Instant::now();
 
-        // slashed or just have no power yet.
-        if !self.has_power(&self.owner, &base.ts)? {
+        let round = base.ts.height() + base.null_rounds + 1;
+
+        // let base_info = self.api.miner_get_base_info();
+        let base_info: Option<u8> = None;
+
+        if base_info.is_none() {
             base.null_rounds += 1;
-            return Err(Error::NoMiningPower(self.owner.clone()));
+            return Err(anyhow!("failed to get mining base info").into());
         }
+
+        // slashed or just have no power yet.
+        // if !self.has_power(&self.owner, &base.ts)? {
+        // base.null_rounds += 1;
+        // return Err(Error::NoMiningPower(self.owner.clone()));
+        // }
 
         info!(
             "Time delta now and our mining base (nulls: {})",
@@ -329,3 +346,4 @@ fn select_messages<Api: SyncFullNodeApi>(
 
     Ok(out)
 }
+*/

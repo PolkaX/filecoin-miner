@@ -1,14 +1,16 @@
+/* Rewrite gen
+ *
 use std::cmp::Ordering;
 
 use anyhow::{anyhow, Result};
-use api::SyncFullNodeApi;
+use api::FullNodeApi;
 use sectorbuilder::EPostCandidate;
 
 use plum_address::Address;
 use plum_bigint::BigInt;
 use plum_crypto::{compute_vrf, VrfPrivateKey, VrfProof};
 use plum_hashing::sha256;
-use plum_ticket::{EPostProof, EPostTicket};
+use plum_sector::{PoStProof, PostTicket};
 use plum_tipset::Tipset;
 
 /// A constant used as `personalization` in `compute_proof()` of miner crate.
@@ -178,7 +180,7 @@ fn election_post_compute_vrf(
     compute_vrf(&worker_priv_key, D_SEP_ELECTION_POST, input, owner)
 }
 
-pub fn is_round_winner<Api: SyncFullNodeApi + Sync, E: ElectionPoStProver>(
+pub fn is_round_winner<Api: FullNodeApi + Sync, E: ElectionPoStProver>(
     ts: &Tipset,
     round: u64,
     owner: &Address,
@@ -254,7 +256,7 @@ pub fn is_round_winner<Api: SyncFullNodeApi + Sync, E: ElectionPoStProver>(
     }))
 }
 
-pub fn compute_proof<E: ElectionPoStProver>(epp: &E, pi: &ProofInput) -> Result<EPostProof> {
+pub fn compute_proof<E: ElectionPoStProver>(epp: &E, pi: &ProofInput) -> Result<PoStProof> {
     let proof = epp
         .compute_proof(&pi.sectors, &pi.hvrf, &pi.winners)
         .map_err(|e| anyhow!("Failed to compute snark for election proof: {:?}", e))?;
@@ -266,7 +268,7 @@ pub fn compute_proof<E: ElectionPoStProver>(epp: &E, pi: &ProofInput) -> Result<
             // TODO: sector_id uses u64 or SectorId?
             // TODO: partial is actually a fixed size array [u8; 32], not an arbitray Vec<u8>.
             let partial = sectorbuilder::fr32::fr_into_bytes(&w.partial_ticket);
-            EPostTicket {
+            PostTicket {
                 partial,
                 sector_id: w.sector_id.into(),
                 challenge_index: w.sector_challenge_index,
@@ -274,9 +276,10 @@ pub fn compute_proof<E: ElectionPoStProver>(epp: &E, pi: &ProofInput) -> Result<
         })
         .collect::<Vec<_>>();
 
-    Ok(EPostProof {
+    Ok(PoStProof {
         proof,
         post_rand: pi.vrfout.clone(),
         candidates,
     })
 }
+*/

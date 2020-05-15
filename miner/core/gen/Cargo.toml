@@ -11,6 +11,7 @@ anyhow = "1.0"
 plum_address = { path = "../../../vendor/plum/primitives/address" }
 plum_bigint = { path = "../../../vendor/plum/primitives/bigint" }
 plum_block = { path = "../../../vendor/plum/primitives/block" }
+plum_sector = { path = "../../../vendor/plum/primitives/sector" }
 plum_crypto = { path = "../../../vendor/plum/crypto" }
 plum_hashing = { path = "../../../vendor/plum/hashing" }
 plum_tipset = { path = "../../../vendor/plum/primitives/tipset" }
