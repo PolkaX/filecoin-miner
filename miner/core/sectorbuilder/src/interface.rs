@@ -3,7 +3,7 @@
 use anyhow::Result;
 use cid::Cid;
 use filecoin_proofs_api::{PieceInfo, RegisteredSealProof, UnpaddedBytesAmount};
-use plum_sector::{SectorNumber, SectorInfo, PoStProof, WinningPoStVerifyInfo};
+use plum_sector::{PoStProof, SectorInfo, SectorNumber, WinningPoStVerifyInfo};
 use plum_types::Randomness;
 use std::io::{Read, Seek, Write};
 

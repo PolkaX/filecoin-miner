@@ -10,9 +10,8 @@ futures = "0.3"
 log = "0.4"
 thiserror = "1.0"
 
-plum_tipset = { path = "../../../vendor/plum/primitives/tipset" }
+plum_api_client = { path = "../../../vendor/plum/api-client" }
 plum_params = { path = "../../../vendor/plum/params" }
-
-api = { path = "../api" }
+plum_tipset = { path = "../../../vendor/plum/primitives/tipset" }
 
 [dev-dependencies]

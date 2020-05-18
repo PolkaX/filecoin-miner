@@ -2,12 +2,15 @@ mod commands;
 mod error;
 mod worker;
 
-use api::{CommonApi, HttpTransport};
-use commands::{Command, SubCommand};
 use log::info;
 use structopt::StructOpt;
+
+use plum_api_client::{CommonApi, HttpTransport};
+
 use utils::native_log;
-use worker::Worker;
+
+use self::commands::{Command, SubCommand};
+use self::worker::Worker;
 
 #[allow(clippy::large_enum_variant)]
 pub enum TaskType {

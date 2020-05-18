@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 log = "0.4"
+parity-multiaddr = "0.8"
 serde_json = "1.0"
 
 # ipfs
@@ -14,7 +15,6 @@ datastore = { git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-ma
 ds-rocksdb = { git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 
 # plum
-plum_libp2p = { path = "../../../vendor/plum/libp2p" }
 plum_wallet = { path = "../../../vendor/plum/wallet" }
 
 # node

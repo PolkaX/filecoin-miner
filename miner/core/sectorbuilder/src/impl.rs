@@ -6,7 +6,7 @@ use bytevec::ByteEncodable;
 use cid::Cid;
 use datastore::key::Key;
 use filecoin_proofs_api::{seal::add_piece, PieceInfo, RegisteredSealProof, UnpaddedBytesAmount};
-use plum_sector::{SectorNumber, PoStProof, SectorInfo, WinningPoStVerifyInfo};
+use plum_sector::{PoStProof, SectorInfo, SectorNumber, WinningPoStVerifyInfo};
 use plum_types::Randomness;
 use std::io::{Read, Seek, Write};
 

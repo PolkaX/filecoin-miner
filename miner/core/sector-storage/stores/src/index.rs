@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use url::Url;
 
-use plum_sector::{SectorId, SectorInfo};
 use plum_bigint::BigUint;
+use plum_sector::{SectorId, SectorInfo};
 
 use log::{info, warn};
 

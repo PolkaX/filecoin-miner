@@ -1,4 +1,4 @@
-use api::HeadChangeType;
+use plum_api_client::HeadChangeType;
 use plum_tipset::Tipset;
 pub type Result<T> = std::result::Result<T, EventsError>;
 

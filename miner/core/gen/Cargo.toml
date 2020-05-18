@@ -8,6 +8,7 @@ edition = "2018"
 anyhow = "1.0"
 
 # plum
+plum_api_client = { path = "../../../vendor/plum/api-client" }
 plum_address = { path = "../../../vendor/plum/primitives/address" }
 plum_bigint = { path = "../../../vendor/plum/primitives/bigint" }
 plum_block = { path = "../../../vendor/plum/primitives/block" }
@@ -17,5 +18,4 @@ plum_hashing = { path = "../../../vendor/plum/hashing" }
 plum_tipset = { path = "../../../vendor/plum/primitives/tipset" }
 
 # core
-api = { path = "../api" }
 sectorbuilder = { path = "../sectorbuilder" }

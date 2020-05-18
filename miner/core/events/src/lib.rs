@@ -6,11 +6,11 @@ use std::future::Future;
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
+use plum_api_client::{ChainApi, HeadChange, HeadChangeType};
 use plum_tipset::{Tipset, TipsetKey};
 
-use api::{ChainApi, HeadChangeType, HeadChange};
-use futures::stream::StreamExt;
 use async_std::task::sleep;
+use futures::stream::StreamExt;
 
 use crate::error::*;
 use crate::tscache::TipSetCache;

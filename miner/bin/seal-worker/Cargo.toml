@@ -11,6 +11,8 @@ serde_json = "1.0"
 structopt = "0.3"
 thiserror = "1.0"
 async-std = "1.5"
-api = { path = "../../core/api" }
-utils = { path = "../../common/utils" }
 
+# plum
+plum_api_client = { path = "../../../vendor/plum/api-client" }
+
+utils = { path = "../../common/utils" }
