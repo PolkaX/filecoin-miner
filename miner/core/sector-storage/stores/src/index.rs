@@ -3,12 +3,13 @@ use std::collections::HashMap;
 use url::Url;
 
 use plum_bigint::BigUint;
-use plum_sector::{SectorId, SectorInfo};
+use plum_sector::{RegisteredProof, SectorId};
 
-use log::{info, warn};
+use log::{debug, info, warn};
 
 use crate::error::{Result, StoresError};
 use crate::filetype::{sector_name, SectorFileType, SectorFileTypes};
+use crate::traits::FsStat;
 use crate::TARGET;
 
 pub type StorageId = String; // todo may use uuid replace string
@@ -52,7 +53,7 @@ impl Index {
     }
 
     // create new storage entry
-    pub fn storage_attach(&mut self, si: StorageInfo) -> Result<()> {
+    pub fn storage_attach(&mut self, si: StorageInfo, stat: FsStat) -> Result<()> {
         info!(target: TARGET, "New sector storage: {:}", si.id);
         match self.stores.get_mut(&si.id) {
             Some(entry) => {
@@ -64,7 +65,13 @@ impl Index {
                 }
             }
             None => {
-                self.stores.insert(si.id.clone(), StorageEntry { info: si });
+                self.stores.insert(
+                    si.id.clone(),
+                    StorageEntry {
+                        info: si,
+                        fsi: stat,
+                    },
+                );
             }
         }
         Ok(())
@@ -189,8 +196,8 @@ impl Index {
         if allow {
             for (k, entry) in self.stores.iter() {
                 match storage_ids.get(k) {
-                    None => continue,
-                    Some(n) => out.push(StorageInfo {
+                    Some(_) => continue,
+                    None => out.push(StorageInfo {
                         id: k.clone(),
                         urls: get_urls(entry),
                         weight: entry.info.weight * 0, // TODO: something better than just '0'
@@ -210,11 +217,15 @@ impl Index {
             .ok_or(StoresError::Tmp)
     }
 
-    pub fn storage_best_allow(
+    pub fn storage_best_alloc(
         &self,
         _allocate: SectorFileType,
+        spt: RegisteredProof,
         sealing: bool,
     ) -> Result<Vec<StorageInfo>> {
+        let allocate: SectorFileTypes = _allocate.into();
+        let space_req = allocate.seal_space_use(spt);
+
         let mut candidates = self
             .stores
             .iter()
@@ -223,6 +234,16 @@ impl Index {
                     return false;
                 }
                 if !sealing && !entey.info.can_store {
+                    return false;
+                }
+                if space_req > entey.fsi.available {
+                    debug!(
+                        target: TARGET,
+                        "not allocating on {:}, out of space (available: {:}, need: {:})",
+                        entey.info.id,
+                        entey.fsi.available,
+                        space_req
+                    );
                     return false;
                 }
                 true
@@ -268,16 +289,16 @@ pub struct Decl {
 #[derive(Clone)]
 pub struct StorageEntry {
     info: StorageInfo,
-    // fsi  :FsStat,
+    fsi: FsStat,
 }
 
 #[derive(Clone)]
 pub struct StorageInfo {
-    id: StorageId,
-    urls: Vec<Url>,
+    pub id: StorageId,
+    pub urls: Vec<Url>,
     // TODO: Support non-http transports
-    weight: u64,
+    pub weight: u64,
 
-    can_seal: bool,
-    can_store: bool,
+    pub can_seal: bool,
+    pub can_store: bool,
 }

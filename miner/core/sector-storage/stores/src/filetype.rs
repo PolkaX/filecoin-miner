@@ -3,7 +3,7 @@ use std::slice::Iter;
 
 use bitmask::bitmask;
 
-use plum_sector::SectorId;
+use plum_sector::{RegisteredProof, SectorId};
 
 use crate::error::{Result, StoresError};
 
@@ -19,6 +19,26 @@ bitmask! {
     }
 }
 
+lazy_static::lazy_static! {
+    static ref FS_OVERHEAD_SEAL: HashMap<SectorFileType, u64> = {
+        let mut m = HashMap::new();
+        m.insert(SectorFileType::FTUnsealed, 10);
+        m.insert(SectorFileType::FTSealed, 10);
+        m.insert(SectorFileType::FTCache, 10);
+        m
+    };
+}
+
+lazy_static::lazy_static! {
+    static ref FS_OVERHEAD_FINALIZED: HashMap<SectorFileType, u64> = {
+        let mut m = HashMap::new();
+        m.insert(SectorFileType::FTUnsealed, 10);
+        m.insert(SectorFileType::FTSealed, 10);
+        m.insert(SectorFileType::FTCache, 2);
+        m
+    };
+}
+
 impl SectorFileTypes {
     pub fn iter() -> Iter<'static, SectorFileType> {
         static ITEMS: &[SectorFileType] = &[
@@ -27,6 +47,19 @@ impl SectorFileTypes {
             SectorFileType::FTCache,
         ];
         ITEMS.iter()
+    }
+
+    pub fn seal_space_use(&self, proof: RegisteredProof) -> u64 {
+        let ssize = proof.sector_size();
+        let mut need = 0;
+        for t in Self::iter() {
+            if !self.contains(*t) {
+                continue;
+            }
+            let oh = FS_OVERHEAD_SEAL.get(t).expect("must exist");
+            need += oh * ssize / 10;
+        }
+        need
     }
 }
 
@@ -61,6 +94,17 @@ pub struct SectorPaths {
     paths: HashMap<SectorFileType, String>,
 }
 impl SectorPaths {
+    pub fn new(id: SectorId) -> Self {
+        SectorPaths {
+            id,
+            paths: Default::default(),
+        }
+    }
+
+    pub fn sector_id(&self) -> &SectorId {
+        &self.id
+    }
+
     pub fn path_by_type(&self, type_: SectorFileType) -> Option<&str> {
         self.paths.get(&type_).map(AsRef::as_ref)
     }
