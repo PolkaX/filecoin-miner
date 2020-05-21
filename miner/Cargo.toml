@@ -7,6 +7,7 @@ members = [
     "core/events",
     "core/sector-storage",
     "core/sector-storage/stores",
+    "core/sector-storage/proof_wrapper",
     "core/sectorbuilder",
     "core/state_machine",
     "core/miner",

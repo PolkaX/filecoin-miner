@@ -1,0 +1,16 @@
+[package]
+name = "proof_wrapper"
+version = "0.1.0"
+authors = ["PolkaX <github.com/polkax>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+specs-storage = { path = "../specs-storage" }
+plum_types = { path = "../../../../vendor/plum/primitives/types" }
+plum_piece = { path = "../../../../vendor/plum/primitives/piece" }
+plum_sector = { path = "../../../../vendor/plum/primitives/sector" }
+stores = { path = "../stores" }
+filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api" }
+anyhow = "1.0.23"

@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 anyhow = "1.0.23"
-cid = { version = "0.5", features = ["impl-serde"] }
 libc = "0.2"
 paired = "0.18.0"
 rand = "0.7"
@@ -15,13 +14,11 @@ serde = { version = "1.0", features = ["derive"] }
 tempfile = "3"
 thiserror = "1.0"
 bytevec = "0.2.0"
-
 # filecoin proof
 filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api", branch = "master" }
-
+cid = { version = "0.5" , features = ["cbor", "json"] }
 # ipfs
 datastore = { git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
-
 # plum
 plum_address = { path = "../../../vendor/plum/primitives/address" }
 plum_piece = { path = "../../../vendor/plum/primitives/piece" }

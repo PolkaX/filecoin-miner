@@ -1,0 +1,13 @@
+[package]
+name = "specs-storage"
+version = "0.1.0"
+authors = ["PolkaX <github.com/polkax>"]
+edition = "2018"
+
+[dependencies]
+anyhow = "1.0"
+plum_types = { path = "../../../../vendor/plum/primitives/types" }
+plum_piece = { path = "../../../../vendor/plum/primitives/piece" }
+plum_sector = { path = "../../../../vendor/plum/primitives/sector" }
+cid = { version = "0.5" , features = ["cbor", "json"] }
+filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api" }

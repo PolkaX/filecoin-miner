@@ -91,7 +91,7 @@ impl ToString for SectorFileType {
 
 pub struct SectorPaths {
     id: SectorId,
-    paths: HashMap<SectorFileType, String>,
+    pub paths: HashMap<SectorFileType, String>,
 }
 impl SectorPaths {
     pub fn new(id: SectorId) -> Self {
