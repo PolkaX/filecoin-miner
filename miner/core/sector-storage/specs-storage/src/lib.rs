@@ -1,21 +1,25 @@
 // Copyright 2020 PolkaX
 
-use cid::Cid;
-use plum_piece::UnpaddedPieceSize;
-use plum_sector::{PoStProof, SectorId, SectorInfo};
-use plum_types::{Randomness, ActorId};
-use filecoin_proofs_api::{seal, PieceInfo, seal::SealPreCommitPhase2Output};
 use anyhow::Result;
+use cid::Cid;
+use filecoin_proofs_api::{seal, seal::SealPreCommitPhase2Output, PieceInfo, UnpaddedBytesAmount};
+use plum_sector::{PoStProof, SectorId, SectorInfo};
+use plum_types::{ActorId, Randomness};
+use std::io::{Read, Seek, Write};
 
-pub trait Storage<R: std::io::Read> {
-    fn new_sector(sector: SectorId) -> Result<()>;
+pub trait Storage {
+    fn new_sector(&self, sector: SectorId) -> Result<()>;
 
-    fn add_piece(
-        sector: SectorId,
-        piece_siezes: UnpaddedPieceSize,
-        new_piece_size: UnpaddedPieceSize,
-        piece_data: std::io::BufReader<R>,
-    ) -> Result<PieceInfo>;
+    fn add_piece<R, W>(
+        &self,
+        source: R,
+        target: W,
+        piece_siezes: UnpaddedBytesAmount,
+        new_piece_size: &[UnpaddedBytesAmount],
+    ) -> Result<(PieceInfo, UnpaddedBytesAmount)>
+    where
+        R: Read,
+        W: Read + Write + Seek;
 }
 
 pub trait Prover {
@@ -50,10 +54,14 @@ pub trait Sealer {
         ticket: SealRandomness,
         pieces: &[PieceInfo],
     ) -> Result<PreCommit1Out>;
-    fn seal_pre_commit2(&mut self, sector: SectorId, pc1o: PreCommit1Out) -> Result<SealPreCommitPhase2Output>;
+    fn seal_pre_commit2(
+        &mut self,
+        sector: SectorId,
+        pc1o: PreCommit1Out,
+    ) -> Result<SealPreCommitPhase2Output>;
 
     fn seal_commit1(
-        &mut self, 
+        &mut self,
         sector: SectorId,
         ticket: SealRandomness,
         seed: InteractiveSealRandomness,

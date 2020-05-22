@@ -2,7 +2,6 @@
 
 use anyhow::{bail, Result};
 use filecoin_proofs_api::{seal, seal::SealPreCommitPhase2Output, PieceInfo, RegisteredSealProof};
-use plum_piece::{PaddedPieceSize, UnpaddedPieceSize};
 use plum_sector::{SectorId, SectorSize};
 use plum_types::to_prove_id;
 use specs_storage::Sealer as SealerTrait;
@@ -13,7 +12,7 @@ use stores::filetype::{SectorFileType, SectorFileTypes};
 type SectorProvider = crate::basicfs::Provider;
 
 pub struct Sealer {
-    seal_proof_type: RegisteredSealProof,
+    pub seal_proof_type: RegisteredSealProof,
     ssize: SectorSize,
     sectors: SectorProvider,
 }
