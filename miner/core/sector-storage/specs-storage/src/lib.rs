@@ -2,9 +2,12 @@
 
 use anyhow::Result;
 use cid::Cid;
-use filecoin_proofs_api::{seal, seal::SealPreCommitPhase2Output, PieceInfo, UnpaddedBytesAmount};
-use plum_sector::{PoStProof, SectorId, SectorInfo};
-use plum_types::{ActorId, Randomness};
+use filecoin_proofs_api::{
+    seal, seal::SealPreCommitPhase2Output, ChallengeSeed, PieceInfo, PrivateReplicaInfo, ProverId,
+    RegisteredPoStProof, SnarkProof, UnpaddedBytesAmount, SectorId as SectorNumber,
+};
+use plum_sector::SectorId;
+use std::collections::BTreeMap;
 use std::io::{Read, Seek, Write};
 
 pub trait Storage {
@@ -24,16 +27,16 @@ pub trait Storage {
 
 pub trait Prover {
     fn generate_winning_post(
-        miner_id: ActorId,
-        sector_info: &[SectorInfo],
-        randomness: Randomness,
-    ) -> Result<PoStProof>;
+        randomness: &ChallengeSeed,
+        replicas: &BTreeMap<SectorNumber, PrivateReplicaInfo>,
+        prover_id: ProverId,
+    ) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>>;
 
     fn generate_window_post(
-        miner_id: ActorId,
-        sector_info: &[SectorInfo],
-        randomness: Randomness,
-    ) -> Result<PoStProof>;
+        randomness: &ChallengeSeed,
+        replicas: &BTreeMap<SectorNumber, PrivateReplicaInfo>,
+        prover_id: ProverId,
+    ) -> Result<Vec<(RegisteredPoStProof, SnarkProof)>>;
 }
 
 pub type PreCommit1Out = seal::SealPreCommitPhase1Output;
