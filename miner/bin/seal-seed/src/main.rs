@@ -3,5 +3,5 @@
 mod seed;
 
 fn main() {
-    println!("Hello, world!");
+	seed::pre_seal();
 }

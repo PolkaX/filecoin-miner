@@ -1,13 +1,16 @@
 // Copyright 2020 PolkaX
 
 use ds_rocksdb::DatabaseConfig;
+use filecoin_proofs_api::{PaddedBytesAmount, RegisteredSealProof, UnpaddedBytesAmount};
 use plum_address::Address;
+use plum_sector::SectorSize;
 use plum_wallet::KeyInfo;
+use proof_wrapper::sealer::Sealer;
 use repo::{FsRepo, RepoType};
-use sectorbuilder::{
-    fs as FS, interface::Interface, user_bytes_for_sector_size, Config, SectorBuilder,
-};
+use specs_storage::Storage;
+use std::io::{Seek, SeekFrom, Write};
 use std::{fs, path::PathBuf};
+use tempfile::NamedTempFile;
 use utils::consts;
 
 struct StorageDealProposal {}
@@ -26,41 +29,29 @@ pub struct GenesisMiner {
     key: KeyInfo,
 }
 
-pub fn pre_seal(
-    maddr: Address,
-    ssize: u64,
-    sectors: i32,
-    sbroot: String,
-    preimage: &[u8],
-) -> Option<GenesisMiner> {
-    let sectorbuilder_config = Config {
-        sector_size: ssize,
-        miner: maddr,
-        worker_threads: 0,
-        fall_back_last_id: 0,
-        no_commit: true,
-        no_pre_commit: true,
-        paths: FS::SimplePath(sbroot.clone()),
-    };
+const SECTORS: i64 = 1;
+const ROOT_PATH: &str = "./test";
+const SECTOR_SIZE: SectorSize = 2 * 1024;
+const SEAL_PROOF_TYPE: RegisteredSealProof = RegisteredSealProof::StackedDrg2KiBV1;
+pub fn pre_seal() {
+    let sealer = Sealer::new(ROOT_PATH.into(), SEAL_PROOF_TYPE, SECTOR_SIZE);
+    let number_of_bytes_in_piece = UnpaddedBytesAmount::from(PaddedBytesAmount(SECTOR_SIZE));
+    let piece_bytes: Vec<u8> = (0..number_of_bytes_in_piece.0)
+        .map(|_| rand::random::<u8>())
+        .collect();
+    let mut piece_file = NamedTempFile::new().unwrap();
+    piece_file.write_all(&piece_bytes).unwrap();
+    piece_file.as_file_mut().sync_all().unwrap();
+    piece_file.as_file_mut().seek(SeekFrom::Start(0)).unwrap();
 
-    let config = DatabaseConfig::with_columns(
-        consts::ALL_NAMESPACE
-            .iter()
-            .map(|s| s.to_string())
-            .collect(),
-    );
-    if let Some(repo) = FsRepo::init(PathBuf::from(sbroot), RepoType::FullNode, config).unwrap() {
-        let sectorbuilder_ds = repo
-            .lock()
-            .unwrap()
-            .datastore(consts::SECTORBUILDER_SPACE)
-            .unwrap();
-        let mut sb = SectorBuilder::new(&sectorbuilder_config, sectorbuilder_ds);
-        let size = user_bytes_for_sector_size(ssize);
-        // let mut sealed_sectors = Vec::new();
-        for i in 0..sectors {
-            let sid = sb.acquire_sector_id().unwrap();
-        }
-    }
-    None
+    piece_file.as_file_mut().seek(SeekFrom::Start(0)).unwrap();
+    let mut staged_sector_file = NamedTempFile::new().unwrap();
+    let (piece_info, size) = sealer
+        .add_piece(
+            &mut piece_file,
+            &mut staged_sector_file,
+            number_of_bytes_in_piece,
+            &[],
+        )
+        .unwrap();
 }

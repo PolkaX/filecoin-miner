@@ -3890,10 +3890,15 @@ name = "seal-seed"
 version = "0.1.0"
 dependencies = [
  "ds-rocksdb",
+ "filecoin-proofs-api",
  "plum_address",
+ "plum_sector",
  "plum_wallet",
+ "proof_wrapper",
+ "rand 0.7.3",
  "repo",
- "sectorbuilder",
+ "specs-storage",
+ "tempfile",
  "utils",
 ]
 
