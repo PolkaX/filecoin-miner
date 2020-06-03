@@ -3,15 +3,21 @@
 use ds_rocksdb::DatabaseConfig;
 use filecoin_proofs_api::{PaddedBytesAmount, RegisteredSealProof, UnpaddedBytesAmount};
 use plum_address::Address;
-use plum_sector::SectorSize;
+use plum_sector::{SectorId, SectorSize};
 use plum_wallet::KeyInfo;
 use proof_wrapper::sealer::Sealer;
+use rand::{Rng, SeedableRng};
+use rand_xorshift::XorShiftRng;
 use repo::{FsRepo, RepoType};
-use specs_storage::Storage;
+use specs_storage::{Sealer as SealerTrait, Storage};
 use std::io::{Seek, SeekFrom, Write};
 use std::{fs, path::PathBuf};
 use tempfile::NamedTempFile;
 use utils::consts;
+
+const TEST_SEED: [u8; 16] = [
+    0x59, 0x62, 0xbe, 0x5d, 0x76, 0x3d, 0x31, 0x8d, 0x17, 0xdb, 0x37, 0x32, 0x54, 0x06, 0xbc, 0xe5,
+];
 
 struct StorageDealProposal {}
 struct PreSeal {
@@ -34,7 +40,7 @@ const ROOT_PATH: &str = "./test";
 const SECTOR_SIZE: SectorSize = 2 * 1024;
 const SEAL_PROOF_TYPE: RegisteredSealProof = RegisteredSealProof::StackedDrg2KiBV1;
 pub fn pre_seal() {
-    let sealer = Sealer::new(ROOT_PATH.into(), SEAL_PROOF_TYPE, SECTOR_SIZE);
+    let mut sealer = Sealer::new(ROOT_PATH.into(), SEAL_PROOF_TYPE, SECTOR_SIZE);
     let number_of_bytes_in_piece = UnpaddedBytesAmount::from(PaddedBytesAmount(SECTOR_SIZE));
     let piece_bytes: Vec<u8> = (0..number_of_bytes_in_piece.0)
         .map(|_| rand::random::<u8>())
@@ -53,5 +59,23 @@ pub fn pre_seal() {
             number_of_bytes_in_piece,
             &[],
         )
+        .unwrap();
+    let sealed_sector_file = NamedTempFile::new().unwrap();
+    let mut unseal_file = NamedTempFile::new().unwrap();
+    let cache_dir = tempfile::tempdir().unwrap();
+
+    let rng = &mut XorShiftRng::from_seed(TEST_SEED);
+    let ticket = rng.gen();
+    let sector_id = SectorId {
+        miner: 1,
+        number: 1,
+    };
+
+    let pre_commit_output1 = sealer
+        .seal_pre_commit1(sector_id, ticket, &[piece_info])
+        .unwrap();
+
+    let pre_commit_output2 = sealer
+        .seal_pre_commit2(sector_id, pre_commit_output1)
         .unwrap();
 }

@@ -16,5 +16,6 @@ proof_wrapper = { path = "../../core/sector-storage/proof_wrapper" }
 specs-storage = { path = "../../core/sector-storage/specs-storage" }
 ds-rocksdb = { git = "https://github.com/PolkaX/rust-ipfs", branch = "filecoin-master" }
 filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api" }
+rand_xorshift = "0.2.0"
 rand = "0.7"
 tempfile = "3"
