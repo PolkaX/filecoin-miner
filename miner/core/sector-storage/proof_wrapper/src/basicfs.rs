@@ -34,18 +34,13 @@ impl Provider {
     ) -> Result<(SectorPaths, bool)> {
         let mut paths = SectorPaths::new(id);
         for file in sector_types.iter() {
-            let path = Path::new(&self.root).join(file.to_string());
+            let path = Path::new(&self.root)
+                .join(file.to_string())
+                .join(sector_name(id));
             if !path.is_dir() {
                 fs::create_dir_all(path.clone()).unwrap();
             }
-            paths.set_path_by_type(
-                file.clone(),
-                path.join(sector_name(id))
-                    .as_os_str()
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
-            );
+            paths.set_path_by_type(file.clone(), path.as_os_str().to_str().unwrap().to_string());
         }
         Ok((paths, true))
     }

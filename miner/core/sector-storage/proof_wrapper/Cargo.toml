@@ -14,3 +14,4 @@ plum_sector = { path = "../../../../vendor/plum/primitives/sector" }
 stores = { path = "../stores" }
 filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin-proofs-api" }
 anyhow = "1.0.23"
+log = "0.4"

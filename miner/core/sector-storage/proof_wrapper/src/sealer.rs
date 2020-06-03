@@ -2,6 +2,7 @@
 
 use anyhow::{bail, Result};
 use filecoin_proofs_api::{seal, seal::SealPreCommitPhase2Output, PieceInfo, RegisteredSealProof};
+use log::info;
 use plum_sector::{SectorId, SectorSize};
 use plum_types::to_prove_id;
 use specs_storage::Sealer as SealerTrait;
@@ -39,10 +40,10 @@ impl SealerTrait for Sealer {
             all_types.push(*file);
         }
         let (paths, _) = self.sectors.acquire_sector(sector, &all_types).unwrap();
-        let attr = fs::metadata(paths.paths[&SectorFileType::FTSealed].clone())?;
+        /*let attr = fs::metadata(paths.paths[&SectorFileType::FTSealed].clone())?;
         if !attr.is_dir() {
             bail!("NO_SEALED_FILE")
-        }
+        }*/
         // TO DO: test cache
 
         /*let mut sum = UnpaddedPieceSize::new(0).unwrap();
@@ -54,6 +55,10 @@ impl SealerTrait for Sealer {
             bail!("aggregated piece sizes don't match sector size")
         }*/
         let prove_id = to_prove_id(sector.miner).unwrap();
+        info!(
+            "sealed path: {:?}",
+            paths.paths[&SectorFileType::FTSealed].clone()
+        );
         seal::seal_pre_commit_phase1(
             self.seal_proof_type,
             paths.paths[&SectorFileType::FTCache].clone(),

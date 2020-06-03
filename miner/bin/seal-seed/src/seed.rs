@@ -71,11 +71,14 @@ pub fn pre_seal() {
         number: 1,
     };
 
-    let pre_commit_output1 = sealer
-        .seal_pre_commit1(sector_id, ticket, &[piece_info])
-        .unwrap();
+    let pre_commit_output1 = sealer.seal_pre_commit1(sector_id, ticket, &[piece_info]);
 
-    let pre_commit_output2 = sealer
-        .seal_pre_commit2(sector_id, pre_commit_output1)
-        .unwrap();
+    match pre_commit_output1 {
+        Ok(pre_commit_output1) => {
+            let pre_commit_output2 = sealer
+                .seal_pre_commit2(sector_id, pre_commit_output1)
+                .unwrap();
+        }
+        Err(out) => println!("{}", out),
+    };
 }

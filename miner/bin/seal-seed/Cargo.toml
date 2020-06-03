@@ -19,3 +19,4 @@ filecoin-proofs-api = { git = "https://github.com/filecoin-project/rust-filecoin
 rand_xorshift = "0.2.0"
 rand = "0.7"
 tempfile = "3"
+log = "0.4"
